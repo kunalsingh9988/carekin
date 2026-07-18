@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "../../generated/prisma";
-import { FamilyProfileInput, ProviderProfileInput } from "@carekin/shared-types";
+import { CareRecipientInput, FamilyProfileInput, ProviderProfileInput } from "@carekin/shared-types";
 import { PrismaService } from "../../prisma/prisma.service";
 import { VerificationService } from "../verification/verification.service";
 
@@ -41,6 +41,34 @@ export class UsersService {
     // them (Section 7) — this is the only path that creates a provider row.
     await this.verification.createPendingRecord(profile.id);
     return profile;
+  }
+
+  async createCareRecipient(userId: string, input: CareRecipientInput) {
+    const family = await this.prisma.familyProfile.findUnique({ where: { userId } });
+    if (!family) throw new NotFoundException("Create a family profile first");
+    return this.prisma.careRecipient.create({
+      data: {
+        familyId: family.id,
+        type: input.type,
+        name: input.name,
+        notes: input.notes,
+      },
+    });
+  }
+
+  async getMyProviderProfile(userId: string) {
+    const profile = await this.prisma.providerProfile.findUnique({
+      where: { userId },
+      include: { verificationRecord: true },
+    });
+    if (!profile) throw new NotFoundException("No provider profile yet");
+    return profile;
+  }
+
+  async listCareRecipients(userId: string) {
+    const family = await this.prisma.familyProfile.findUnique({ where: { userId } });
+    if (!family) throw new NotFoundException("Create a family profile first");
+    return this.prisma.careRecipient.findMany({ where: { familyId: family.id } });
   }
 
   // Prisma can't write its own Unsupported("geography") columns, so the

@@ -2,8 +2,9 @@
 
 Per Section 10 of the master build prompt: Auth → User/Profile → Verification → Booking → Payment → Chat → Notifications.
 
-Built so far: `auth`, `verification`, `users`, `search` (search demonstrates
-verification-gating at the query layer, ahead of full booking flow).
+Built so far: `auth`, `verification`, `users` (family/provider profiles, care
+recipients), `search` (search demonstrates verification-gating at the query
+layer, ahead of full booking flow).
 
 Not yet built — next up, in order:
 - `bookings` — one-off + subscription booking flow
