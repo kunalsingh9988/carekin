@@ -11,8 +11,11 @@ export default async function WelcomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // No standalone /login page anymore — login is the navbar's popup, which
+  // only exists on pages that render <Navbar />. Send an unauthenticated
+  // visitor back to the homepage instead of a dead route.
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const { data: roleRow } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();

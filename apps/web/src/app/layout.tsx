@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Anek_Devanagari, Anek_Latin, IBM_Plex_Sans, IBM_Plex_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
+import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { Navbar } from "@/components/Navbar";
 
 // Loaded here so tokens.css's `font-family: "Anek Latin", ...` etc. actually
 // resolve to a registered @font-face, not just a name the browser can't
@@ -30,7 +33,13 @@ export default function RootLayout({
       lang="en"
       className={`${anekLatin.variable} ${anekDevanagari.variable} ${ibmPlexSans.variable} ${ibmPlexSansDevanagari.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-bg-canvas text-text-primary">{children}</body>
+      <body className="flex min-h-full flex-col bg-bg-canvas text-text-primary">
+        <AuthModalProvider>
+          <Navbar />
+          {children}
+          <AuthModal />
+        </AuthModalProvider>
+      </body>
     </html>
   );
 }
