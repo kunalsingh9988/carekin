@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Anek_Devanagari, Anek_Latin, IBM_Plex_Sans, IBM_Plex_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+// Loaded here so tokens.css's `font-family: "Anek Latin", ...` etc. actually
+// resolve to a registered @font-face, not just a name the browser can't
+// find. Devanagari cuts loaded alongside their Latin counterparts per
+// Section 6's non-negotiable Hindi-support requirement.
+const anekLatin = Anek_Latin({ variable: "--next-font-anek-latin", subsets: ["latin"] });
+const anekDevanagari = Anek_Devanagari({ variable: "--next-font-anek-devanagari", subsets: ["devanagari"] });
+const ibmPlexSans = IBM_Plex_Sans({ variable: "--next-font-ibm-plex-sans", subsets: ["latin"], weight: ["400", "500", "600"] });
+const ibmPlexSansDevanagari = IBM_Plex_Sans_Devanagari({
+  variable: "--next-font-ibm-plex-sans-devanagari",
+  subsets: ["devanagari"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -25,9 +28,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${anekLatin.variable} ${anekDevanagari.variable} ${ibmPlexSans.variable} ${ibmPlexSansDevanagari.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col bg-bg-canvas text-text-primary">{children}</body>
     </html>
   );
 }

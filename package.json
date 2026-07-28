@@ -12,17 +12,12 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "db:up": "docker compose -f infra/docker-compose.yml up -d",
-    "db:down": "docker compose -f infra/docker-compose.yml down",
-    "db:migrate": "pnpm --filter @carekin/api exec prisma migrate dev",
-    "db:seed": "pnpm --filter @carekin/api exec prisma db seed",
-    "db:studio": "pnpm --filter @carekin/api exec prisma studio"
-  },
-  "dependencies": {
-    "@prisma/client": "^5.22.0"
+    "db:start": "supabase start --workdir packages/supabase",
+    "db:stop": "supabase stop --workdir packages/supabase",
+    "db:reset": "supabase db reset --workdir packages/supabase",
+    "db:types": "supabase gen types typescript --local --workdir packages/supabase > packages/types/src/supabase.ts"
   },
   "devDependencies": {
-    "prisma": "^5.22.0",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   }

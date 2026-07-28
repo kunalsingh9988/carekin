@@ -1,52 +1,74 @@
 # CareKin
 
 Two-sided marketplace connecting families with verified elder caregivers and
-babysitters. Single-city launch, verification-gated visibility. See the
-master build prompt for full product/technical spec.
+babysitters. Single-city launch, verification-gated visibility enforced by
+Postgres Row Level Security. See the "CareKin Web App Master Build Prompt"
+for the full spec.
+
+**Architecture pivot (2026-07-28):** moved from a NestJS + Prisma + self-hosted
+Postgres/Redis backend to Next.js + Supabase (Postgres RLS as the real
+authorization boundary, Supabase Auth/Storage/Realtime/Edge Functions instead
+of a separate API service). The old implementation is preserved, not deleted
+— see [archive/README.md](archive/README.md). `apps/mobile` (Expo) is paused,
+not migrated, and still works against its own frozen type package.
 
 ## Structure
 
 ```
 apps/
-  mobile/   Expo (React Native) — Family + Provider flows
-  web/      Next.js — marketing site, booking flow, admin dashboard
-  api/      NestJS — backend, Prisma-backed
+  web/                Next.js 15 App Router — marketing, auth, admin (family/provider next)
+  mobile/              Expo (paused — see archive/README.md)
 packages/
-  shared-types/  Zod schemas + TS types shared across all apps
-infra/
-  docker-compose.yml   local Postgres+PostGIS and Redis
-  prisma/schema.prisma core data model
+  core/                Framework-agnostic business logic (commission, verification-state, booking-eligibility)
+  types/                Supabase-generated Database types (hand-written placeholder — see below)
+  validation/          Zod schemas mirroring the Postgres schema, lowercase enum values
+  ui-tokens/            Design tokens as portable JSON + generated CSS + Tailwind mapping
+  shared-types/        Frozen, mobile-only — do not use for new work (see its own README)
+infra:
+  packages/supabase/    Supabase CLI project: migrations/, seed.sql, functions/ (not an npm package)
+archive/
+  api-nestjs/           Superseded NestJS backend
+  infra-prisma-docker/  Superseded Prisma schema + docker-compose
 ```
 
 ## Getting started
 
 ```bash
-cp .env.example .env
-cp apps/web/.env.example apps/web/.env.local
-cp apps/mobile/.env.example apps/mobile/.env
+cp apps/web/.env.example apps/web/.env.local   # fill in real Supabase project values
 pnpm install
-pnpm db:up                 # start local Postgres+PostGIS and Redis
-pnpm --filter @carekin/api exec prisma migrate dev --schema=../../infra/prisma/schema.prisma
-pnpm dev                    # runs all apps via turbo
+pnpm db:start   # supabase start — requires Docker Desktop, not available in this sandbox
+pnpm db:reset   # applies migrations + seed.sql
+pnpm db:types   # regenerates packages/types/src/supabase.ts for real
+pnpm --filter @carekin/web dev
 ```
 
-For the mobile app on a physical device, set `EXPO_PUBLIC_API_URL` in
-`apps/mobile/.env` to your machine's LAN IP (not `localhost`), then
-`pnpm --filter @carekin/mobile start`.
+**This sandbox has no Docker**, so `packages/supabase`'s migration and seed
+were validated a different way: against a real vanilla Postgres 17 +
+PostGIS install (via Homebrew) with hand-stubbed `auth`/`storage` schemas
+standing in for what Supabase's platform normally provides. Every
+table/policy/RPC function was created successfully, and `review_verification`,
+`create_child_care_recipient`, `search_providers`, `list_pending_providers`,
+and `claim_initial_role` were all exercised directly and behaved correctly
+(including rejecting the exact bypass attempts they exist to prevent). Once
+Docker is available, run `pnpm db:start && pnpm db:reset` for the real thing.
+
+`apps/web` itself builds and runs today — verified in-browser (login page,
+role toggle, OTP form, dark-mode tokens, tap-target sizing, and the admin
+queue's auth-redirect all confirmed working) — it just can't complete a real
+sign-in without a live Supabase project's URL/anon key in `.env.local`.
 
 ## Status
 
-Scaffolded: monorepo, Prisma schema, Auth (OTP + JWT), Verification (with
-admin-approval gating and audit log), Users/Profile (incl. care recipients),
-geo-gated Search, a minimal admin verification queue UI (web), and a full
-Expo navigation shell for both Family and Provider flows — phone OTP login,
-role-based onboarding (profile + geo + care recipient / document checklist),
-Family search + provider detail, and a Provider home screen showing live
-verification status.
+Built: Turborepo skeleton, full Postgres schema + RLS (Section 5.2's
+verification gate implemented and tested), `packages/core` /`validation`/
+`ui-tokens`, phone-OTP auth pages, and the admin verification queue
+(Server Actions calling `review_verification` / `list_pending_providers`).
 
-Not yet built: Booking, Payment, Chat, Notifications modules — see
-[apps/api/src/modules/README.md](apps/api/src/modules/README.md). The mobile
-Booking/Chat/Payouts screens exist as UI shells with clear "not wired up yet"
-messaging rather than fake functionality, since Payment/Chat need real
-Razorpay/KYC-vendor credentials (Section 12 of the build prompt) to be more
-than scaffolding.
+Not yet built, in build-order sequence: `(provider)` onboarding + KYC
+upload, `(family)` search/booking/payment collection, chat, notifications,
+and the payout Edge Function (blocked on an RBI Payment Aggregator
+confirmation from Razorpay/Cashfree — see the spec's Section 2 guardrail).
+`carekin-design-system.html` (referenced in Section 6) wasn't found
+anywhere on this machine — `packages/ui-tokens/tokens.json` marks which
+values are copied verbatim from the spec vs. reasonable placeholders;
+replace the placeholders once that file exists.

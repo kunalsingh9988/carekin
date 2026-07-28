@@ -20,5 +20,8 @@ pnpm-debug.log*
 !.vscode/extensions.json
 ios/
 android/
-infra/prisma/migrations/dev.db
-apps/api/src/generated/
+
+# Supabase CLI local dev state
+packages/supabase/.branches/
+packages/supabase/.temp/
+packages/supabase/.env
