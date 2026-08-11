@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareKin — frontend-only prototype
 
-## Getting Started
-
-First, run the development server:
+Per the "CareKin Frontend-Only Build Prompt": every screen from the PRD's
+Screen Inventory, no backend, no real auth, no real payments. Every "write"
+persists to browser `localStorage` through a typed data-access layer
+(`src/lib/storage/`), structured so swapping it for Supabase later is a
+data-layer change, not a rewrite.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm --filter @carekin/web dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+First load seeds `localStorage` with demo data automatically (4 families,
+16 providers mixed across pending/approved/rejected, bookings in every
+status). To reset: clear the `carekin:*` keys in your browser's
+localStorage (devtools → Application → Local Storage), or open an
+incognito window.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What's simulated, on purpose
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **OTP**: any 6-digit code is accepted, with an on-screen "Demo mode" note.
+- **Payment**: `simulatePayment()` resolves after a fake delay, ~90%
+  success / ~10% failure — reachable during a normal demo, not just
+  theoretical.
+- **KYC documents**: "upload" stores a filename + timestamp, no real file.
+- **Payouts**: a simple pending → paid ledger, flipped by an admin's
+  "Simulate payout run" button.
 
-## Learn More
+The one rule that is **not** simulated: verification gating. Only
+`verification_status === 'approved'` providers are ever returned by
+`listApprovedProviders()` — filtered inside the data layer, not hidden by
+the UI — mirroring the real backend's RLS policy.
 
-To learn more about Next.js, take a look at the following resources:
+## Deviations worth knowing about
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Login is a popup, not a page.** `/login` from the original page list
+  doesn't exist as a route — it's the `AuthModal` component, opened from
+  the navbar, per an explicit later UX request in this project's history.
+- Money is stored as integer paise, matching the real Supabase-backed
+  schema's convention (`packages/supabase/migrations/`).

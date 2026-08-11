@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import "@carekin/ui-tokens/tokens.css";
+
+/* Tailwind v4 reads design tokens from CSS custom properties directly
+ * (no JS preset consumption like v3) — this maps the portable --ck-* tokens
+ * from packages/ui-tokens/tokens.css into Tailwind's own --color- and
+ * --spacing- namespaces, which is what actually generates utilities like
+ * bg-accent, text-accent-text, rounded-md. See
+ * packages/ui-tokens/tailwind-preset.ts for the same mapping in plain-JS
+ * form (for non-Tailwind consumers). */
+@theme inline {
+  --color-bg-canvas: var(--ck-color-bg-canvas);
+  --color-surface: var(--ck-color-surface);
+  --color-border: var(--ck-color-border);
+  --color-text-primary: var(--ck-color-text-primary);
+  --color-text-secondary: var(--ck-color-text-secondary);
+  --color-accent: var(--ck-color-accent);
+  --color-accent-text: var(--ck-color-accent-text);
+  --color-verified: var(--ck-color-verified);
+  --color-highlight: var(--ck-color-highlight);
+  --color-danger: var(--ck-color-danger);
+  --color-warning: var(--ck-color-warning);
+  --color-success-generic: var(--ck-color-success-generic);
+
+  --font-display-latin: var(--ck-font-display-latin);
+  --font-display-devanagari: var(--ck-font-display-devanagari);
+  --font-body-latin: var(--ck-font-body-latin);
+  --font-body-devanagari: var(--ck-font-body-devanagari);
+
+  --text-xs: var(--ck-text-xs);
+  --text-sm: var(--ck-text-sm);
+  --text-base: var(--ck-text-base);
+  --text-lg: var(--ck-text-lg);
+  --text-xl: var(--ck-text-xl);
+  --text-2xl: var(--ck-text-2xl);
+  --text-3xl: var(--ck-text-3xl);
+  --text-4xl: var(--ck-text-4xl);
+  --text-5xl: var(--ck-text-5xl);
+
+  --spacing-0: var(--ck-space-0);
+  --spacing-1: var(--ck-space-1);
+  --spacing-2: var(--ck-space-2);
+  --spacing-3: var(--ck-space-3);
+  --spacing-4: var(--ck-space-4);
+  --spacing-5: var(--ck-space-5);
+  --spacing-6: var(--ck-space-6);
+  --spacing-8: var(--ck-space-8);
+  --spacing-10: var(--ck-space-10);
+  --spacing-12: var(--ck-space-12);
+  --spacing-16: var(--ck-space-16);
+  --spacing-20: var(--ck-space-20);
+
+  --radius-sm: var(--ck-radius-sm);
+  --radius-md: var(--ck-radius-md);
+  --radius-lg: var(--ck-radius-lg);
+  --radius-xl: var(--ck-radius-xl);
+  --radius-full: var(--ck-radius-full);
+
+  --spacing-tap: var(--ck-size-min-tap-target);
+}
+
+body {
+  background: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-body-latin);
+}

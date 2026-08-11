@@ -2,26 +2,25 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { UserRole } from "@carekin/validation";
-import { PhoneNumber } from "@carekin/validation";
-import { createClient } from "@/lib/supabase/client";
+import { loginAsRole } from "@/lib/auth";
+import { getFamilyProfile } from "@/lib/storage/repositories/families";
+import { getMyProvider } from "@/lib/storage/repositories/providers";
+import { PhoneNumber, UserRole, type UserRoleValue } from "@/lib/validation/schemas";
 import { useAuthModal } from "./AuthModalProvider";
 
 type Step = "phone" | "otp";
 
-// The only way to log in or sign up — a dismissible popup, not a forced
-// full-page redirect. Opened from the navbar (or any future "log in to
-// continue" prompt) via useAuthModal().open().
+// Demo mode: no real SMS provider exists in this prototype (Guardrails,
+// Section 2/8) — any 6-digit code is accepted, and the on-screen note says
+// so explicitly rather than silently auto-passing.
 export function AuthModal() {
   const { isOpen, close } = useAuthModal();
-  const supabase = createClient();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("phone");
-  const [role, setRole] = useState<UserRole>("family");
+  const [role, setRole] = useState<UserRoleValue>("family");
   const [phone, setPhone] = useState("+91");
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -31,7 +30,6 @@ export function AuthModal() {
     setPhone("+91");
     setOtp("");
     setError(null);
-    setLoading(false);
   }
 
   function handleCancel() {
@@ -39,22 +37,12 @@ export function AuthModal() {
     close();
   }
 
-  async function handleSendOtp(e: React.FormEvent) {
+  function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
     const parsed = PhoneNumber.safeParse(phone);
     if (!parsed.success) {
-      setError("Enter a valid phone number in E.164 format, e.g. +919876543210");
-      return;
-    }
-
-    setLoading(true);
-    const { error: otpError } = await supabase.auth.signInWithOtp({ phone: parsed.data });
-    setLoading(false);
-
-    if (otpError) {
-      setError(otpError.message);
+      setError(parsed.error.issues[0]?.message ?? "Enter a valid phone number");
       return;
     }
     setStep("otp");
@@ -63,33 +51,31 @@ export function AuthModal() {
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
-    const { error: verifyError } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
-    if (verifyError) {
-      setLoading(false);
-      setError(verifyError.message);
+    if (!/^\d{6}$/.test(otp)) {
+      setError("Enter any 6 digits — this is demo mode.");
       return;
     }
 
-    // Only meaningful on first login — claim_initial_role() is a no-op
-    // (raises, which we swallow) if this user already has a role, and can
-    // never assign 'admin' — see the migration's own guardrail.
-    await supabase.rpc("claim_initial_role", { p_role: role === "provider" ? "provider" : "family" });
-
-    setLoading(false);
+    const parsedRole = UserRole.safeParse(role);
+    const user = loginAsRole(phone, parsedRole.success ? parsedRole.data : "family");
     reset();
     close();
-    router.push("/welcome");
+
+    if (user.role === "admin") {
+      router.push("/admin/verification-queue");
+    } else if (user.role === "provider") {
+      const provider = await getMyProvider(user.id);
+      router.push(provider ? "/provider/verification-status" : "/provider/onboarding");
+    } else {
+      const family = await getFamilyProfile(user.id);
+      router.push(family ? "/family/search" : "/family/onboarding");
+    }
     router.refresh();
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-      onClick={handleCancel}
-      role="presentation"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={handleCancel} role="presentation">
       <div
         className="w-full max-w-sm rounded-lg border border-border bg-surface p-6"
         onClick={(e) => e.stopPropagation()}
@@ -104,6 +90,7 @@ export function AuthModal() {
             <div className="flex gap-2">
               <RoleButton label="I need care" active={role === "family"} onClick={() => setRole("family")} />
               <RoleButton label="I provide care" active={role === "provider"} onClick={() => setRole("provider")} />
+              <RoleButton label="Admin" active={role === "admin"} onClick={() => setRole("admin")} />
             </div>
 
             <label className="flex flex-col gap-1 text-sm text-text-secondary">
@@ -120,19 +107,11 @@ export function AuthModal() {
             {error && <p className="text-sm text-danger">{error}</p>}
 
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary"
-              >
+              <button type="button" onClick={handleCancel} className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary">
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white disabled:opacity-50"
-              >
-                {loading ? "Sending…" : "Send OTP"}
+              <button type="submit" className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white">
+                Send OTP
               </button>
             </div>
           </form>
@@ -140,6 +119,7 @@ export function AuthModal() {
           <form onSubmit={handleVerify} className="flex flex-col gap-4">
             <h2 className="text-lg font-semibold text-text-primary">Enter the code</h2>
             <p className="-mt-2 text-sm text-text-secondary">Sent to {phone}</p>
+            <p className="demo-note rounded-md px-3 py-2 text-xs">Demo mode: enter any 6 digits — no real SMS is sent.</p>
 
             <label className="flex flex-col gap-1 text-sm text-text-secondary">
               6-digit OTP
@@ -156,19 +136,11 @@ export function AuthModal() {
             {error && <p className="text-sm text-danger">{error}</p>}
 
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary"
-              >
+              <button type="button" onClick={handleCancel} className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary">
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white disabled:opacity-50"
-              >
-                {loading ? "Verifying…" : "Verify"}
+              <button type="submit" disabled={otp.length !== 6} className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white disabled:opacity-50">
+                Verify
               </button>
             </div>
           </form>
@@ -183,9 +155,7 @@ function RoleButton({ label, active, onClick }: { label: string; active: boolean
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-tap flex-1 rounded-md border px-3 text-sm font-medium ${
-        active ? "border-accent bg-accent text-white" : "border-border text-text-secondary"
-      }`}
+      className={`min-h-tap flex-1 rounded-md border px-2 text-xs font-medium ${active ? "border-accent bg-accent text-white" : "border-border text-text-secondary"}`}
     >
       {label}
     </button>

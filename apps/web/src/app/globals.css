@@ -1,13 +1,12 @@
 @import "tailwindcss";
 @import "@carekin/ui-tokens/tokens.css";
 
-/* Tailwind v4 reads design tokens from CSS custom properties directly
- * (no JS preset consumption like v3) — this maps the portable --ck-* tokens
- * from packages/ui-tokens/tokens.css into Tailwind's own --color- and
- * --spacing- namespaces, which is what actually generates utilities like
- * bg-accent, text-accent-text, rounded-md. See
- * packages/ui-tokens/tailwind-preset.ts for the same mapping in plain-JS
- * form (for non-Tailwind consumers). */
+/* Tailwind v4 reads design tokens from CSS custom properties directly —
+ * this maps the portable --ck-* tokens from packages/ui-tokens/tokens.css
+ * into Tailwind's own --color-/--spacing- namespaces, which is what
+ * generates utilities like bg-accent, text-accent-text, rounded-md.
+ * Every color/spacing/radius/type-size in this app comes from here —
+ * no hardcoded hex or px in components (Guardrails, Section 2/6). */
 @theme inline {
   --color-bg-canvas: var(--ck-color-bg-canvas);
   --color-surface: var(--ck-color-surface);
@@ -63,4 +62,12 @@ body {
   background: var(--color-bg-canvas);
   color: var(--color-text-primary);
   font-family: var(--font-body-latin);
+}
+
+/* Demo-mode banner shown on simulated flows (OTP, payment, KYC) — see
+ * Guardrails Section 2: "simulate, don't fake silently." */
+.demo-note {
+  border: 1px dashed var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
 }

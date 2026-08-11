@@ -1,0 +1,86 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FileText, Upload } from "lucide-react";
+import { useRequireRole } from "@/lib/hooks/useRequireRole";
+import { getMyProvider, submitDocuments } from "@/lib/storage/repositories/providers";
+import type { DocumentType, Provider } from "@/lib/storage/types";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
+const REQUIRED: { type: DocumentType; label: string }[] = [
+  { type: "id_proof", label: "Government ID (Aadhaar, PAN, etc.)" },
+  { type: "address_proof", label: "Address proof" },
+  { type: "certificate", label: "Any relevant certificates (optional)" },
+];
+
+// Real-world: Aadhaar eKYC + police verification via a KYC vendor.
+// Prototype: "upload" just stores a filename + timestamp — no real file
+// storage, no real vendor call (Guardrails, Section 2/8).
+export default function DocumentUploadPage() {
+  const user = useRequireRole("provider");
+  const router = useRouter();
+  const [provider, setProvider] = useState<Provider | null>(null);
+  const [uploaded, setUploaded] = useState<Record<DocumentType, string | null>>({
+    id_proof: null,
+    address_proof: null,
+    certificate: null,
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    getMyProvider(user.id).then(setProvider);
+  }, [user]);
+
+  if (!user) return null;
+
+  function handleSimulatedUpload(type: DocumentType) {
+    setUploaded((prev) => ({ ...prev, [type]: `${type}-${Date.now()}.pdf` }));
+  }
+
+  async function handleFinish() {
+    if (!provider) return;
+    const docs = (Object.entries(uploaded) as [DocumentType, string | null][])
+      .filter(([, filename]) => filename)
+      .map(([type, filename]) => ({ type, filename: filename! }));
+    if (docs.length > 0) await submitDocuments(provider.id, docs);
+    router.push("/provider/verification-status");
+  }
+
+  const requiredDone = uploaded.id_proof && uploaded.address_proof;
+
+  return (
+    <main className="mx-auto flex max-w-md flex-1 flex-col justify-center gap-6 px-6 py-16">
+      <div>
+        <h1 className="text-2xl font-semibold text-text-primary">Upload your documents</h1>
+        <p className="mt-1 text-sm text-text-secondary">Our team reviews these before you go live.</p>
+      </div>
+
+      <p className="demo-note rounded-md px-3 py-2 text-xs">
+        Demo mode: this just records a filename, no real file is uploaded anywhere.
+      </p>
+
+      <div className="flex flex-col gap-3">
+        {REQUIRED.map((doc) => (
+          <Card key={doc.type} className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 shrink-0 text-text-secondary" />
+              <div>
+                <p className="text-sm font-medium text-text-primary">{doc.label}</p>
+                {uploaded[doc.type] && <p className="text-xs text-success-generic">{uploaded[doc.type]} uploaded</p>}
+              </div>
+            </div>
+            <Button variant="secondary" onClick={() => handleSimulatedUpload(doc.type)} className="shrink-0">
+              <Upload className="h-4 w-4" /> {uploaded[doc.type] ? "Replace" : "Upload"}
+            </Button>
+          </Card>
+        ))}
+      </div>
+
+      <Button onClick={handleFinish} disabled={!requiredDone} fullWidth>
+        Submit for review
+      </Button>
+    </main>
+  );
+}

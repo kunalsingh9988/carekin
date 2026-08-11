@@ -63,24 +63,15 @@ importers:
 
   apps/web:
     dependencies:
-      '@carekin/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@carekin/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       '@carekin/ui-tokens':
         specifier: workspace:*
         version: link:../../packages/ui-tokens
-      '@carekin/validation':
-        specifier: workspace:*
-        version: link:../../packages/validation
-      '@supabase/ssr':
-        specifier: ^0.12.3
-        version: 0.12.3(@supabase/supabase-js@2.110.9)
-      '@supabase/supabase-js':
-        specifier: ^2.110.9
-        version: 2.110.9
+      '@hookform/resolvers':
+        specifier: ^3.9.1
+        version: 3.10.0(react-hook-form@7.85.0(react@19.2.4))
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.2.4)
       next:
         specifier: 16.2.10
         version: 16.2.10(@babel/core@7.29.7)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -90,6 +81,12 @@ importers:
       react-dom:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
+      react-hook-form:
+        specifier: ^7.54.2
+        version: 7.85.0(react@19.2.4)
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -718,6 +715,11 @@ packages:
     resolution: {integrity: sha512-4aQzz9vgxcNXFfo/iyNgDDYfsU5XGKKxWxZopw0cVotHiW+U8IJbIxMaxsINs6bHhtkG3StKNPcOrn3eBuxKPw==}
     hasBin: true
 
+  '@hookform/resolvers@3.10.0':
+    resolution: {integrity: sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==}
+    peerDependencies:
+      react-hook-form: ^7.0.0
+
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
     engines: {node: '>=18.18.0'}
@@ -1096,38 +1098,6 @@ packages:
 
   '@sinclair/typebox@0.27.12':
     resolution: {integrity: sha512-hhyNJ+nbR6ZR7pToHvllEFun9TL0sbL+tk/ON75lo+Xas054uez98qRbsuNt7MBCyZKK4+8Yli/OAGZhmfBZ/g==}
-
-  '@supabase/auth-js@2.110.9':
-    resolution: {integrity: sha512-XQIWyJfwEUdtzinuLUWPNSJbJKWdCQPqC7dDY45lA1qhX/OzvGPE+4OyPPZVOVWVh4DlPvk5RT2XL6SEAY0MoA==}
-    engines: {node: '>=22.0.0'}
-
-  '@supabase/functions-js@2.110.9':
-    resolution: {integrity: sha512-iSL6ih4vWK5Myc1lCuDoApfeB3Ov3cZIExvlCuQEZTzyzOKG4SLxVKPrBZG/QzwAjp7TEy0LCd0zZQtE5UAaDQ==}
-    engines: {node: '>=22.0.0'}
-
-  '@supabase/phoenix@0.4.5':
-    resolution: {integrity: sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw==}
-
-  '@supabase/postgrest-js@2.110.9':
-    resolution: {integrity: sha512-YEfUzBMNkDE9OMfjzZnVgJH9h7y+wxxXryrgYk/t3boVtjPPlfwTdWRx8YkihuIbl4zxzdG4I0yiS4nd4Lmj8Q==}
-    engines: {node: '>=22.0.0'}
-
-  '@supabase/realtime-js@2.110.9':
-    resolution: {integrity: sha512-XHau+5jIOEAtS9hNiSrL4/2SXSt0EApChsj+f2VJL2mL+eicpUYLkANBu+5awFLIjXGOkys+ClYQ7Dg/3UTHcA==}
-    engines: {node: '>=22.0.0'}
-
-  '@supabase/ssr@0.12.3':
-    resolution: {integrity: sha512-qWXJ/dI7CiYDKyTgIPqJ4Qkh8y5edh2LdF/nkN48z47mmEVzAO2OE+YErYeQ/UemVfonn/F4kFz+lhLqoVMdpw==}
-    peerDependencies:
-      '@supabase/supabase-js': ^2.110.5
-
-  '@supabase/storage-js@2.110.9':
-    resolution: {integrity: sha512-UmyL+SB4cOBsejAaJ8LnLIm31585shJtnTezCCLMHyo2AauoH13sKJqPllf/8HMcGYqd0a4kHrA5t2nz+MSARA==}
-    engines: {node: '>=22.0.0'}
-
-  '@supabase/supabase-js@2.110.9':
-    resolution: {integrity: sha512-C8UVe+x6hymwiLdJntQCm9zMD5+40tWF6j+17Z6g8NJnBAWEiuM9wXYAqgDzGAQF6oqrkHddmnZwWZZtEp0zeA==}
-    engines: {node: '>=22.0.0'}
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -1811,10 +1781,6 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  cookie@1.1.1:
-    resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
-    engines: {node: '>=18'}
-
   core-js-compat@3.49.0:
     resolution: {integrity: sha512-VQXt1jr9cBz03b331DFDCCP90b3fanciLkgiOoy8SBHy06gNf+vQ1A3WFLqG7I8TipYIKeYK9wxd0tUrvHcOZA==}
 
@@ -2428,10 +2394,6 @@ packages:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
 
-  iceberg-js@0.8.1:
-    resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
-    engines: {node: '>=20.0.0'}
-
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
@@ -2789,6 +2751,11 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-react@0.469.0:
+    resolution: {integrity: sha512-28vvUnnKQ/dBwiCQtwJw7QauYnE7yd2Cyp4tTTJpvglX4EMpbflcdBgrgToX2j71B3YvugK/NH3BGUk+E/p/Fw==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -3191,6 +3158,12 @@ packages:
     engines: {node: '>=10'}
     peerDependencies:
       react: '>=17.0.0'
+
+  react-hook-form@7.85.0:
+    resolution: {integrity: sha512-U2MTriFXnclmV4rOE20p2DcRFv5WEg3FIcBFOKcOLFHDVvGIMPvLTkTWefUsonmlaVy23khVDxDWym6uJVGOzw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -4707,6 +4680,10 @@ snapshots:
       chalk: 4.1.2
       js-yaml: 4.3.0
 
+  '@hookform/resolvers@3.10.0(react-hook-form@7.85.0(react@19.2.4))':
+    dependencies:
+      react-hook-form: 7.85.0(react@19.2.4)
+
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -5060,43 +5037,6 @@ snapshots:
   '@rtsao/scc@1.1.0': {}
 
   '@sinclair/typebox@0.27.12': {}
-
-  '@supabase/auth-js@2.110.9':
-    dependencies:
-      tslib: 2.8.1
-
-  '@supabase/functions-js@2.110.9':
-    dependencies:
-      tslib: 2.8.1
-
-  '@supabase/phoenix@0.4.5': {}
-
-  '@supabase/postgrest-js@2.110.9':
-    dependencies:
-      tslib: 2.8.1
-
-  '@supabase/realtime-js@2.110.9':
-    dependencies:
-      '@supabase/phoenix': 0.4.5
-      tslib: 2.8.1
-
-  '@supabase/ssr@0.12.3(@supabase/supabase-js@2.110.9)':
-    dependencies:
-      '@supabase/supabase-js': 2.110.9
-      cookie: 1.1.1
-
-  '@supabase/storage-js@2.110.9':
-    dependencies:
-      iceberg-js: 0.8.1
-      tslib: 2.8.1
-
-  '@supabase/supabase-js@2.110.9':
-    dependencies:
-      '@supabase/auth-js': 2.110.9
-      '@supabase/functions-js': 2.110.9
-      '@supabase/postgrest-js': 2.110.9
-      '@supabase/realtime-js': 2.110.9
-      '@supabase/storage-js': 2.110.9
 
   '@swc/helpers@0.5.15':
     dependencies:
@@ -5813,8 +5753,6 @@ snapshots:
       - supports-color
 
   convert-source-map@2.0.0: {}
-
-  cookie@1.1.1: {}
 
   core-js-compat@3.49.0:
     dependencies:
@@ -6587,8 +6525,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  iceberg-js@0.8.1: {}
-
   ignore@5.3.2: {}
 
   ignore@7.0.6: {}
@@ -6919,6 +6855,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-react@0.469.0(react@19.2.4):
+    dependencies:
+      react: 19.2.4
 
   magic-string@0.30.21:
     dependencies:
@@ -7428,6 +7368,10 @@ snapshots:
   react-freeze@1.0.4(react@19.2.3):
     dependencies:
       react: 19.2.3
+
+  react-hook-form@7.85.0(react@19.2.4):
+    dependencies:
+      react: 19.2.4
 
   react-is@16.13.1: {}
 
