@@ -6,3 +6,20 @@
 // prototype's flows get wired to Supabase.
 export const MIN_COMMISSION_RATE = 0.15;
 export const DEFAULT_COMMISSION_RATE = 0.18;
+
+// Pricing model for the guest booking funnel (Section 6.3/6.6). A single
+// flat per-visit rate keeps the prototype's pricing math legible; the real
+// backend would price per-provider.
+export const HOURLY_RATE_PAISE = 60000; // ~₹600/hr
+export const DEFAULT_VISIT_DURATION_HOURS = 2;
+export const VISITS_PER_WEEK = 3;
+export const WEEKLY_DISCOUNT_PCT = 15; // "Save 15% vs. booking one-off"
+
+export function oneOffVisitPricePaise(durationHours: number = DEFAULT_VISIT_DURATION_HOURS): number {
+  return Math.round(HOURLY_RATE_PAISE * durationHours);
+}
+
+export function weeklyPlanPricePaise(durationHours: number = DEFAULT_VISIT_DURATION_HOURS): number {
+  const undiscounted = oneOffVisitPricePaise(durationHours) * VISITS_PER_WEEK;
+  return Math.round(undiscounted * (1 - WEEKLY_DISCOUNT_PCT / 100));
+}

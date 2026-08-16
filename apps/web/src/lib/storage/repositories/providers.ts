@@ -33,19 +33,45 @@ export interface ProviderWithDistance extends Provider {
   distance_km: number;
 }
 
+// Guest-safe projection — no phone, no exact coordinates. `/search` and
+// `/providers/[slug]` are public routes; a provider's phone number and
+// precise location must never reach the client on those pages, not just
+// be hidden by the UI (Guardrails: "guest-safe data only on public routes").
+export type GuestSafeProvider = Omit<Provider, "phone" | "latitude" | "longitude">;
+export interface GuestSafeProviderWithDistance extends GuestSafeProvider {
+  distance_km: number;
+}
+
+function toGuestSafe<T extends Provider>(p: T): Omit<T, "phone" | "latitude" | "longitude"> {
+  const { phone: _phone, latitude: _lat, longitude: _lng, ...rest } = p;
+  return rest;
+}
+
 // Mirrors the real RLS-gated search RPC: verification_status === 'approved'
 // is filtered HERE, inside the data layer, never left to the UI to hide
 // (Guardrails, Section 2/5 — the one rule that must survive unchanged).
-export async function listApprovedProviders(filters: ProviderSearchFilters): Promise<ProviderWithDistance[]> {
+export async function listApprovedProviders(filters: ProviderSearchFilters): Promise<GuestSafeProviderWithDistance[]> {
   const radiusKm = filters.radiusKm ?? 10;
   const all = get<Provider[]>(PROVIDERS_KEY, []);
   return all
     .filter((p) => p.verification_status === "approved" && p.type === filters.type)
     .map((p) => ({ ...p, distance_km: haversineKm(filters.latitude, filters.longitude, p.latitude, p.longitude) }))
     .filter((p) => p.distance_km <= radiusKm)
-    .sort((a, b) => a.distance_km - b.distance_km);
+    .sort((a, b) => a.distance_km - b.distance_km)
+    .map(toGuestSafe);
 }
 
+// Guest-safe single-provider lookup for the public `/providers/[slug]` page.
+// Returns null for anything not approved — same gating rule, single-record
+// form (a guest must never see a pending/rejected provider by guessing an id).
+export async function getProviderPublic(id: string): Promise<GuestSafeProvider | null> {
+  const provider = await getProvider(id);
+  if (!provider || provider.verification_status !== "approved") return null;
+  return toGuestSafe(provider);
+}
+
+// Full record — for authenticated/internal use only (booking creation,
+// provider's own dashboard, admin). Never returned to a guest-facing page.
 export async function getProvider(id: string): Promise<Provider | null> {
   const all = get<Provider[]>(PROVIDERS_KEY, []);
   return all.find((p) => p.id === id) ?? null;

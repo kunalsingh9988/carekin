@@ -1,11 +1,7 @@
+import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-
-const CITIES = [
-  { name: "Bengaluru", neighborhoods: "Koramangala", status: "Live" },
-  { name: "Mumbai", neighborhoods: "—", status: "Coming soon" },
-  { name: "Delhi NCR", neighborhoods: "—", status: "Coming soon" },
-];
+import { CITIES } from "@/lib/cities";
 
 export default function CitiesPage() {
   return (
@@ -18,20 +14,29 @@ export default function CitiesPage() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {CITIES.map((city) => (
-          <Card key={city.name} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-5 w-5 text-accent" />
-              <div>
-                <p className="font-medium text-text-primary">{city.name}</p>
-                <p className="text-sm text-text-secondary">{city.neighborhoods}</p>
+        {CITIES.map((city) => {
+          const content = (
+            <Card className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-accent" />
+                <div>
+                  <p className="font-medium text-text-primary">{city.name}</p>
+                  <p className="text-sm text-text-secondary">{city.neighborhoods}</p>
+                </div>
               </div>
-            </div>
-            <span className={`text-xs font-semibold ${city.status === "Live" ? "text-success-generic" : "text-text-secondary"}`}>
-              {city.status}
-            </span>
-          </Card>
-        ))}
+              <span className={`text-xs font-semibold ${city.live ? "text-success-generic" : "text-text-secondary"}`}>
+                {city.live ? "Live" : "Coming soon"}
+              </span>
+            </Card>
+          );
+          return city.live ? (
+            <Link key={city.name} href={`/cities/${city.slug}`}>
+              {content}
+            </Link>
+          ) : (
+            <div key={city.name}>{content}</div>
+          );
+        })}
       </div>
     </main>
   );

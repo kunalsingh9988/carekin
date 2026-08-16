@@ -180,6 +180,29 @@ export interface Dispute {
   resolved_at: string | null;
 }
 
+// Session-scoped only — a guest's booking selection before they have an
+// account (Guardrails: "guest state must survive the signup gate"). Lives
+// in lib/storage/session.ts, not the repositories above, and is never
+// itself a real domain record.
+export interface PendingBooking {
+  providerId: string;
+  type: BookingType;
+  frequency?: SubscriptionFrequency;
+  scheduledDate: string;
+  scheduledTime: string;
+  durationHours: number;
+  amountPaise: number;
+  careRecipientId?: string;
+  createdAt: string;
+}
+
+export interface Referral {
+  id: string;
+  referrer_family_id: string;
+  referred_family_id: string;
+  created_at: string;
+}
+
 // Represents SMS/push in this prototype — an in-app entry only (Section 8).
 export type NotificationType =
   | "booking_confirmed"

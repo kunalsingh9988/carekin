@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginAsRole } from "@/lib/auth";
-import { getFamilyProfile } from "@/lib/storage/repositories/families";
 import { getMyProvider } from "@/lib/storage/repositories/providers";
 import { PhoneNumber, UserRole, type UserRoleValue } from "@/lib/validation/schemas";
 import { useAuthModal } from "./AuthModalProvider";
@@ -14,14 +13,18 @@ type Step = "phone" | "otp";
 // Section 2/8) — any 6-digit code is accepted, and the on-screen note says
 // so explicitly rather than silently auto-passing.
 export function AuthModal() {
-  const { isOpen, close } = useAuthModal();
+  const { isOpen, close, defaultRole } = useAuthModal();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("phone");
-  const [role, setRole] = useState<UserRoleValue>("family");
+  const [role, setRole] = useState<UserRoleValue>(defaultRole);
   const [phone, setPhone] = useState("+91");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) setRole(defaultRole);
+  }, [isOpen, defaultRole]);
 
   if (!isOpen) return null;
 
@@ -68,8 +71,10 @@ export function AuthModal() {
       const provider = await getMyProvider(user.id);
       router.push(provider ? "/provider/verification-status" : "/provider/onboarding");
     } else {
-      const family = await getFamilyProfile(user.id);
-      router.push(family ? "/family/search" : "/family/onboarding");
+      // This popup is for returning users (Section 5.1) — a brand new
+      // family only gets a profile by going through /book/[slug]/profile.
+      // /family (dashboard) handles the "no profile yet" case itself.
+      router.push("/family");
     }
     router.refresh();
   }

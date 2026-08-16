@@ -9,10 +9,14 @@ import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { LanguageToggle } from "./LanguageToggle";
 import { NotificationBell } from "./NotificationBell";
 
+// /search is public (Section 5.1) — always shown, not gated behind login.
+const PUBLIC_LINKS = [{ href: "/search", label: "Search" }];
+
 const ROLE_LINKS: Record<CurrentUser["role"], { href: string; label: string }[]> = {
   family: [
-    { href: "/family/search", label: "Search" },
+    { href: "/family", label: "Dashboard" },
     { href: "/family/bookings", label: "My bookings" },
+    { href: "/family/referrals", label: "Referrals" },
     { href: "/family/settings", label: "Settings" },
   ],
   provider: [
@@ -45,21 +49,21 @@ export function Navbar() {
     router.refresh();
   }
 
+  const links = !user ? PUBLIC_LINKS : user.role === "family" ? [...PUBLIC_LINKS, ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
+
   return (
     <header className="flex items-center justify-between border-b border-border px-6 py-4">
       <div className="flex items-center gap-8">
         <Link href="/" className="font-display-latin text-lg font-semibold text-text-primary">
           CareKin
         </Link>
-        {user && (
-          <nav className="hidden items-center gap-5 md:flex">
-            {ROLE_LINKS[user.role].map((link) => (
-              <Link key={link.href} href={link.href} className="text-sm font-medium text-text-secondary">
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        <nav className="hidden items-center gap-5 md:flex">
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="text-sm font-medium text-text-secondary">
+              {link.label}
+            </Link>
+          ))}
+        </nav>
       </div>
 
       <div className="flex items-center gap-3">
@@ -72,7 +76,7 @@ export function Navbar() {
             </button>
           </>
         ) : (
-          <button onClick={open} className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white">
+          <button onClick={() => open()} className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white">
             Log in / Sign up
           </button>
         )}

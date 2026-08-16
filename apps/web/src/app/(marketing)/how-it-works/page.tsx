@@ -1,42 +1,65 @@
-import { CircleCheck, MessageCircle, Search, ShieldCheck, UserPlus } from "lucide-react";
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
-
-const STEPS = [
-  { icon: Search, title: "Search nearby", body: "Filter by elder care or babysitting, see only verified providers within your radius." },
-  { icon: ShieldCheck, title: "Every provider is verified first", body: "Aadhaar eKYC, police verification, and a human admin review — before they're ever visible to you." },
-  { icon: CircleCheck, title: "Book and pay in-app", body: "One-off visits or a recurring weekly/monthly plan. Payment is collected securely at booking." },
-  { icon: MessageCircle, title: "Chat once confirmed", body: "In-app messaging unlocks the moment your booking is confirmed — no need to share personal numbers." },
-];
+import { VerificationTrail } from "@/components/verification/VerificationTrail";
 
 export default function HowItWorksPage() {
   return (
-    <main className="mx-auto flex max-w-3xl flex-1 flex-col gap-10 px-6 py-16">
+    <main className="mx-auto flex max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
       <div className="text-center">
-        <h1 className="text-3xl font-semibold text-text-primary">How CareKin works</h1>
-        <p className="mt-2 text-text-secondary">From search to a trusted caregiver at your door.</p>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {STEPS.map((step, i) => (
-          <Card key={step.title} className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <step.icon className="h-6 w-6 text-accent" />
-              <span className="text-xs font-semibold text-text-secondary">STEP {i + 1}</span>
-            </div>
-            <p className="font-medium text-text-primary">{step.title}</p>
-            <p className="text-sm text-text-secondary">{step.body}</p>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="flex flex-col items-center gap-2 text-center">
-        <UserPlus className="h-6 w-6 text-accent" />
-        <p className="font-medium text-text-primary">Are you a caregiver or babysitter?</p>
-        <p className="text-sm text-text-secondary">
-          Apply on CareKin, upload your documents, and our team reviews you before you go live — usually within a
-          few days.
+        <h1 className="text-3xl font-semibold text-text-primary">Trust isn&apos;t a feature here. It&apos;s the whole product.</h1>
+        <p className="mt-2 text-text-secondary">
+          Before anyone appears in a search result, they&apos;ve been through four separate checks — not just a
+          background-check API call.
         </p>
+        <Link href="/search" className="mt-4 inline-block text-sm font-semibold text-accent-text underline">
+          See who&apos;s verified near you
+        </Link>
+      </div>
+
+      <Card>
+        <VerificationTrail status="approved" size="full" />
       </Card>
+
+      <div className="flex flex-col gap-4">
+        <VerificationDetail
+          title="Identity verification"
+          body="Aadhaar-based ID check, confirmed against government records."
+        />
+        <VerificationDetail
+          title="Police verification"
+          body="A formal police background check, not a self-declared form."
+        />
+        <VerificationDetail
+          title="In-person interview"
+          body="A real conversation with our team — not an automated approval."
+        />
+        <VerificationDetail title="Manual approval" body="A human reviews every application. Passing the checks isn't automatic approval." />
+      </div>
+
+      <div className="flex flex-col items-center gap-1 text-center text-sm text-text-secondary">
+        <p className="font-medium text-text-primary">If any step fails, they don&apos;t go live. No exceptions.</p>
+        <p className="max-w-md">
+          We&apos;d rather have fewer caregivers on CareKin than one we&apos;re not sure about. That&apos;s also why
+          it can take a few days to see new providers in a smaller area — we&apos;re not cutting the process short to
+          grow faster.
+        </p>
+      </div>
+
+      <Link
+        href="/search"
+        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white"
+      >
+        See who&apos;s verified near you
+      </Link>
     </main>
+  );
+}
+
+function VerificationDetail({ title, body }: { title: string; body: string }) {
+  return (
+    <div>
+      <p className="font-medium text-text-primary">{title}</p>
+      <p className="text-sm text-text-secondary">{body}</p>
+    </div>
   );
 }

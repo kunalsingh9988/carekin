@@ -68,6 +68,11 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
           <Star className="h-4 w-4" /> Leave a review
         </LinkButton>
       )}
+      {booking.status === "completed" && (
+        <LinkButton href={`/family/bookings/${booking.id}/rebook`} variant="secondary" fullWidth>
+          Book again
+        </LinkButton>
+      )}
       {review && (
         <Card>
           <p className="mb-1 text-sm font-medium text-text-primary">Your review</p>
