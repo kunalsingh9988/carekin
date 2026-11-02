@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { Card } from "@/components/ui/Card";
@@ -5,13 +6,9 @@ import { CITIES } from "@/lib/cities";
 
 export default function CitiesPage() {
   return (
-    <main className="mx-auto flex max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold leading-4xl text-text-primary">Cities we serve</h1>
-        <p className="mt-2 text-text-secondary">
+    <main className="flex flex-1 flex-col"><section className="bg-surface-secondary px-6 py-10 sm:py-14"><div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-[1fr_0.8fr] md:items-center"><div><h1 className="text-4xl font-bold leading-4xl tracking-[-0.02em] text-text-primary">Cities we serve</h1><p className="mt-4 text-text-secondary">
           We launch one neighborhood at a time — trust and retention matter more than coverage this early.
-        </p>
-      </div>
+        </p></div><div className="relative min-h-56 overflow-hidden rounded-2xl"><Image src="/images/carekin/hero-family-care.webp" alt="A family receiving care together at home" fill sizes="(max-width: 768px) 100vw, 40vw" className="object-cover" /></div></div></section><div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-16">
 
       <div className="flex flex-col gap-3">
         {CITIES.map((city) => {
@@ -38,6 +35,6 @@ export default function CitiesPage() {
           );
         })}
       </div>
-    </main>
+    </div></main>
   );
 }

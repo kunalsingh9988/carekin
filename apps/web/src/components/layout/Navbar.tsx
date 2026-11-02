@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 import { isDemoUser, logout, useCurrentUser } from "@/lib/auth";
 import type { CurrentUser } from "@/lib/storage/types";
 import { useAuthModal } from "@/components/auth/AuthModalProvider";
@@ -11,7 +11,12 @@ import { LanguageToggle } from "./LanguageToggle";
 import { NotificationBell } from "./NotificationBell";
 
 // /search is public (Section 5.1) — always shown, not gated behind login.
-const PUBLIC_LINKS = [{ href: "/search", label: "Search" }];
+const PUBLIC_LINKS = [
+  { href: "/search", label: "Find care" },
+  { href: "/how-it-works", label: "How it works" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/cities", label: "Cities" },
+];
 
 const ROLE_LINKS: Record<CurrentUser["role"], { href: string; label: string }[]> = {
   family: [
@@ -52,11 +57,11 @@ export function Navbar() {
   const links = !user ? PUBLIC_LINKS : user.role === "family" ? [...PUBLIC_LINKS, ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
 
   return (
-    <header className="border-b border-border px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="sticky top-0 z-30 border-b border-border/80 bg-surface/95 px-6 py-3 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-lg font-bold text-text-primary">
-            CareKin
+          <Link href="/" className="text-lg font-bold tracking-[-0.03em] text-text-primary">
+            Care<span className="text-accent">Kin</span>
           </Link>
           <nav className="hidden items-center gap-5 md:flex">
             {links.map((link) => (
@@ -82,10 +87,11 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <button onClick={() => open()} className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white">
-              Log in / Sign up
+            <button onClick={() => open()} className="min-h-tap rounded-lg border border-border px-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-secondary sm:px-4">
+              Log in
             </button>
           )}
+          {!user && <Link href="/search" className="hidden min-h-tap items-center gap-1.5 rounded-lg bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-text sm:inline-flex">Find care <ArrowRight className="h-4 w-4" /></Link>}
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="flex min-h-tap min-w-tap items-center justify-center md:hidden"

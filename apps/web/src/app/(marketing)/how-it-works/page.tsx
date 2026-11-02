@@ -1,20 +1,19 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { VerificationTrail } from "@/components/verification/VerificationTrail";
 
 export default function HowItWorksPage() {
   return (
-    <main className="mx-auto flex max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold leading-4xl text-text-primary">Trust isn&apos;t a feature here. It&apos;s the whole product.</h1>
-        <p className="mt-2 text-text-secondary">
+    <main className="flex flex-1 flex-col">
+      <section className="bg-surface-secondary px-6 py-10 sm:py-14"><div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-[1fr_0.9fr] md:items-center"><div><h1 className="text-4xl font-bold leading-4xl tracking-[-0.02em] text-text-primary">Trust isn&apos;t a feature here. It&apos;s the whole product.</h1><p className="mt-4 text-text-secondary">
           Before anyone appears in a search result, they&apos;ve been through four separate checks — not just a
           background-check API call.
-        </p>
-        <Link href="/search" className="mt-4 inline-block text-sm font-semibold text-accent-text">
+        </p><Link href="/search" className="mt-5 inline-block text-sm font-semibold text-accent-text">
           See who&apos;s verified near you →
-        </Link>
-      </div>
+        </Link></div><div className="relative min-h-64 overflow-hidden rounded-2xl"><Image src="/images/carekin/caregiver-arrival.webp" alt="A caregiver arriving at a family home" fill sizes="(max-width: 768px) 100vw, 45vw" className="object-cover" /></div></div></section>
+
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-16">
 
       <Card>
         <VerificationTrail status="approved" size="full" />
@@ -51,6 +50,7 @@ export default function HowItWorksPage() {
       >
         See who&apos;s verified near you
       </Link>
+      </div>
     </main>
   );
 }
