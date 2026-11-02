@@ -21,12 +21,14 @@ const ROLE_LINKS: Record<CurrentUser["role"], { href: string; label: string }[]>
     { href: "/family/settings", label: "Settings" },
   ],
   provider: [
+    { href: "/provider", label: "Dashboard" },
     { href: "/provider/bookings", label: "Bookings" },
     { href: "/provider/verification-status", label: "Verification" },
     { href: "/provider/payouts", label: "Payouts" },
     { href: "/provider/settings", label: "Settings" },
   ],
   admin: [
+    { href: "/admin", label: "Dashboard" },
     { href: "/admin/verification-queue", label: "Verification" },
     { href: "/admin/bookings", label: "Bookings" },
     { href: "/admin/disputes", label: "Disputes" },
