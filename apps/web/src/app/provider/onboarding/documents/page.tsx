@@ -68,7 +68,7 @@ export default function DocumentUploadPage() {
               <FileText className="h-5 w-5 shrink-0 text-text-secondary" />
               <div>
                 <p className="text-sm font-medium text-text-primary">{doc.label}</p>
-                {uploaded[doc.type] && <p className="text-xs text-success-generic">{uploaded[doc.type]} uploaded</p>}
+                {uploaded[doc.type] && <p className="text-xs font-medium text-verified">{uploaded[doc.type]} uploaded</p>}
               </div>
             </div>
             <Button variant="secondary" onClick={() => handleSimulatedUpload(doc.type)} className="shrink-0">

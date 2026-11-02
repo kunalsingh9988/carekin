@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, logout, subscribeToAuthChanges } from "@/lib/auth";
+import { Menu, X } from "lucide-react";
+import { isDemoUser, logout, useCurrentUser } from "@/lib/auth";
 import type { CurrentUser } from "@/lib/storage/types";
 import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { LanguageToggle } from "./LanguageToggle";
@@ -36,14 +37,11 @@ const ROLE_LINKS: Record<CurrentUser["role"], { href: string; label: string }[]>
 export function Navbar() {
   const router = useRouter();
   const { open } = useAuthModal();
-  const [user, setUser] = useState<CurrentUser | null>(null);
-
-  useEffect(() => {
-    setUser(getCurrentUser());
-    return subscribeToAuthChanges(setUser);
-  }, []);
+  const user = useCurrentUser();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleLogout() {
+    setMenuOpen(false);
     logout();
     router.push("/");
     router.refresh();
@@ -52,35 +50,70 @@ export function Navbar() {
   const links = !user ? PUBLIC_LINKS : user.role === "family" ? [...PUBLIC_LINKS, ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
 
   return (
-    <header className="flex items-center justify-between border-b border-border px-6 py-4">
-      <div className="flex items-center gap-8">
-        <Link href="/" className="font-display-latin text-lg font-semibold text-text-primary">
-          CareKin
-        </Link>
-        <nav className="hidden items-center gap-5 md:flex">
+    <header className="border-b border-border px-6 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="text-lg font-bold text-text-primary">
+            CareKin
+          </Link>
+          <nav className="hidden items-center gap-5 md:flex">
+            {links.map((link) => (
+              <Link key={link.href} href={link.href} className="text-sm font-medium text-text-secondary">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <LanguageToggle />
+          {user ? (
+            <>
+              {isDemoUser(user) && (
+                <span className="rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-text-secondary">
+                  Demo
+                </span>
+              )}
+              <NotificationBell userId={user.id} />
+              <button onClick={handleLogout} className="min-h-tap hidden rounded-md px-3 text-sm font-medium text-text-secondary md:block">
+                Log out
+              </button>
+            </>
+          ) : (
+            <button onClick={() => open()} className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white">
+              Log in / Sign up
+            </button>
+          )}
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="flex min-h-tap min-w-tap items-center justify-center md:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <X className="h-5 w-5 text-text-primary" /> : <Menu className="h-5 w-5 text-text-primary" />}
+          </button>
+        </div>
+      </div>
+
+      {menuOpen && (
+        <nav className="mt-3 flex flex-col gap-1 border-t border-border pt-3 md:hidden">
           {links.map((link) => (
-            <Link key={link.href} href={link.href} className="text-sm font-medium text-text-secondary">
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMenuOpen(false)}
+              className="min-h-tap flex items-center rounded-md px-2 text-sm font-medium text-text-primary"
+            >
               {link.label}
             </Link>
           ))}
-        </nav>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <LanguageToggle />
-        {user ? (
-          <>
-            <NotificationBell userId={user.id} />
-            <button onClick={handleLogout} className="min-h-tap rounded-md px-3 text-sm font-medium text-text-secondary">
+          {user && (
+            <button onClick={handleLogout} className="min-h-tap flex items-center rounded-md px-2 text-left text-sm font-medium text-text-secondary">
               Log out
             </button>
-          </>
-        ) : (
-          <button onClick={() => open()} className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white">
-            Log in / Sign up
-          </button>
-        )}
-      </div>
+          )}
+        </nav>
+      )}
     </header>
   );
 }

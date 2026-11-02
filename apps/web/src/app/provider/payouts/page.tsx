@@ -41,11 +41,11 @@ export default function ProviderPayoutsPage() {
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <p className="text-sm text-text-secondary">Pending</p>
-          <p className="text-xl font-semibold text-warning">₹{(pendingTotal / 100).toFixed(0)}</p>
+          <p className="price text-xl font-semibold text-text-primary">₹{(pendingTotal / 100).toFixed(0)}</p>
         </Card>
         <Card>
           <p className="text-sm text-text-secondary">Paid out</p>
-          <p className="text-xl font-semibold text-success-generic">₹{(paidTotal / 100).toFixed(0)}</p>
+          <p className="price text-xl font-semibold text-verified">₹{(paidTotal / 100).toFixed(0)}</p>
         </Card>
       </div>
 
@@ -59,7 +59,7 @@ export default function ProviderPayoutsPage() {
                 <p className="text-sm font-medium text-text-primary">₹{(p.amount_paise / 100).toFixed(0)}</p>
                 <p className="text-xs text-text-secondary">{new Date(p.created_at).toLocaleDateString()}</p>
               </div>
-              <span className={`text-xs font-semibold ${p.status === "paid" ? "text-success-generic" : "text-warning"}`}>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.status === "paid" ? "bg-verified/10 text-verified" : "bg-surface-secondary text-text-secondary"}`}>
                 {p.status === "paid" ? "Paid" : "Pending"}
               </span>
             </Card>

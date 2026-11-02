@@ -28,10 +28,13 @@ export default function ProviderOnboardingPage() {
 
   useEffect(() => {
     if (!user) return;
+    // Pre-fill the phone once the session resolves — defaultValues is
+    // captured on first render, before useRequireRole finishes.
+    setValue("phone", user.phone);
     getMyProvider(user.id).then((p) => {
       if (p) router.replace("/provider/verification-status");
     });
-  }, [user, router]);
+  }, [user, router, setValue]);
 
   useEffect(() => {
     if (coords) {

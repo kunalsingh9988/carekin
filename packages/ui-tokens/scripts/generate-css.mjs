@@ -35,6 +35,9 @@ function typographyVars() {
   for (const [key, token] of Object.entries(t.scale)) {
     lines.push(`  --ck-text-${kebab(key)}: ${token.value};`);
   }
+  for (const [key, token] of Object.entries(t.lineHeight ?? {})) {
+    lines.push(`  --ck-leading-${kebab(key)}: ${token.value};`);
+  }
   return lines.join("\n");
 }
 

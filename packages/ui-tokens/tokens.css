@@ -1,31 +1,40 @@
 /* GENERATED FILE — edit tokens.json and re-run `node scripts/generate-css.mjs`, not this file directly. */
 
 :root {
-  --ck-color-bg-canvas: #FBF7F2;
+  --ck-color-bg-canvas: #FFFFFF;
   --ck-color-surface: #FFFFFF;
-  --ck-color-border: #E4DDD3;
-  --ck-color-text-primary: #1F1B16;
-  --ck-color-text-secondary: #6B6255;
-  --ck-color-accent: #B8563F;
-  --ck-color-accent-text: #9A4430;
-  --ck-color-verified: #2F6F4F;
-  --ck-color-highlight: #D4A72C;
-  --ck-color-danger: #B3413C;
-  --ck-color-warning: #B58A00;
-  --ck-color-success-generic: #2E6F9E;
-  --ck-font-display-latin: "Anek Latin", sans-serif;
-  --ck-font-display-devanagari: "Anek Devanagari", sans-serif;
-  --ck-font-body-latin: "IBM Plex Sans", sans-serif;
-  --ck-font-body-devanagari: "IBM Plex Sans Devanagari", sans-serif;
+  --ck-color-surface-secondary: #F4F4F5;
+  --ck-color-border: #E4E4E7;
+  --ck-color-text-primary: #0F0F0F;
+  --ck-color-ink: #0F0F0F;
+  --ck-color-text-secondary: #6B6B72;
+  --ck-color-accent: #6E42E5;
+  --ck-color-accent-text: #4F2BB8;
+  --ck-color-accent-tint: #EFE9FF;
+  --ck-color-verified: #14804A;
+  --ck-color-highlight: #EFE9FF;
+  --ck-color-danger: #C62828;
+  --ck-color-warning: #6B6B72;
+  --ck-color-success-generic: #14804A;
+  --ck-font-display-latin: var(--next-font-bricolage-grotesque), 'Bricolage Grotesque', sans-serif;
+  --ck-font-display-devanagari: var(--next-font-noto-sans-devanagari), 'Noto Sans Devanagari', sans-serif;
+  --ck-font-body-latin: var(--next-font-figtree), 'Figtree', sans-serif;
+  --ck-font-body-devanagari: var(--next-font-noto-sans-devanagari), 'Noto Sans Devanagari', sans-serif;
   --ck-text-xs: 12px;
   --ck-text-sm: 14px;
   --ck-text-base: 16px;
   --ck-text-lg: 18px;
   --ck-text-xl: 20px;
   --ck-text-2xl: 24px;
-  --ck-text-3xl: 30px;
-  --ck-text-4xl: 36px;
-  --ck-text-5xl: 48px;
+  --ck-text-3xl: 28px;
+  --ck-text-4xl: 40px;
+  --ck-text-5xl: 56px;
+  --ck-leading-sm: 20px;
+  --ck-leading-base: 24px;
+  --ck-leading-lg: 26px;
+  --ck-leading-3xl: 34px;
+  --ck-leading-4xl: 44px;
+  --ck-leading-5xl: 58px;
   --ck-space-0: 0px;
   --ck-space-1: 4px;
   --ck-space-2: 8px;
@@ -38,57 +47,66 @@
   --ck-space-12: 48px;
   --ck-space-16: 64px;
   --ck-space-20: 80px;
-  --ck-radius-sm: 6px;
+  --ck-radius-sm: 8px;
   --ck-radius-md: 10px;
-  --ck-radius-lg: 16px;
-  --ck-radius-xl: 24px;
+  --ck-radius-lg: 14px;
+  --ck-radius-xl: 20px;
   --ck-radius-full: 9999px;
   --ck-size-min-tap-target: 48px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-  --ck-color-bg-canvas: #14110D;
-  --ck-color-surface: #1C1912;
-  --ck-color-border: #332C22;
-  --ck-color-text-primary: #F2EDE6;
-  --ck-color-text-secondary: #B3A99A;
-  --ck-color-accent: #C96B52;
-  --ck-color-accent-text: #E0836A;
-  --ck-color-verified: #4C9873;
-  --ck-color-highlight: #D4A72C;
-  --ck-color-danger: #D9695F;
-  --ck-color-warning: #D1A93B;
-  --ck-color-success-generic: #5A9BC9;
+  --ck-color-bg-canvas: #0F0F0F;
+  --ck-color-surface: #1A1A1E;
+  --ck-color-surface-secondary: #26262B;
+  --ck-color-border: #333338;
+  --ck-color-text-primary: #F4F4F5;
+  --ck-color-ink: #0F0F0F;
+  --ck-color-text-secondary: #A1A1AA;
+  --ck-color-accent: #6E42E5;
+  --ck-color-accent-text: #A98FF5;
+  --ck-color-accent-tint: #2E2350;
+  --ck-color-verified: #3BA469;
+  --ck-color-highlight: #2E2350;
+  --ck-color-danger: #E57373;
+  --ck-color-warning: #A1A1AA;
+  --ck-color-success-generic: #3BA469;
   }
 }
 
 :root[data-theme="dark"] {
-  --ck-color-bg-canvas: #14110D;
-  --ck-color-surface: #1C1912;
-  --ck-color-border: #332C22;
-  --ck-color-text-primary: #F2EDE6;
-  --ck-color-text-secondary: #B3A99A;
-  --ck-color-accent: #C96B52;
-  --ck-color-accent-text: #E0836A;
-  --ck-color-verified: #4C9873;
-  --ck-color-highlight: #D4A72C;
-  --ck-color-danger: #D9695F;
-  --ck-color-warning: #D1A93B;
-  --ck-color-success-generic: #5A9BC9;
+  --ck-color-bg-canvas: #0F0F0F;
+  --ck-color-surface: #1A1A1E;
+  --ck-color-surface-secondary: #26262B;
+  --ck-color-border: #333338;
+  --ck-color-text-primary: #F4F4F5;
+  --ck-color-ink: #0F0F0F;
+  --ck-color-text-secondary: #A1A1AA;
+  --ck-color-accent: #6E42E5;
+  --ck-color-accent-text: #A98FF5;
+  --ck-color-accent-tint: #2E2350;
+  --ck-color-verified: #3BA469;
+  --ck-color-highlight: #2E2350;
+  --ck-color-danger: #E57373;
+  --ck-color-warning: #A1A1AA;
+  --ck-color-success-generic: #3BA469;
 }
 
 :root[data-theme="light"] {
-  --ck-color-bg-canvas: #FBF7F2;
+  --ck-color-bg-canvas: #FFFFFF;
   --ck-color-surface: #FFFFFF;
-  --ck-color-border: #E4DDD3;
-  --ck-color-text-primary: #1F1B16;
-  --ck-color-text-secondary: #6B6255;
-  --ck-color-accent: #B8563F;
-  --ck-color-accent-text: #9A4430;
-  --ck-color-verified: #2F6F4F;
-  --ck-color-highlight: #D4A72C;
-  --ck-color-danger: #B3413C;
-  --ck-color-warning: #B58A00;
-  --ck-color-success-generic: #2E6F9E;
+  --ck-color-surface-secondary: #F4F4F5;
+  --ck-color-border: #E4E4E7;
+  --ck-color-text-primary: #0F0F0F;
+  --ck-color-ink: #0F0F0F;
+  --ck-color-text-secondary: #6B6B72;
+  --ck-color-accent: #6E42E5;
+  --ck-color-accent-text: #4F2BB8;
+  --ck-color-accent-tint: #EFE9FF;
+  --ck-color-verified: #14804A;
+  --ck-color-highlight: #EFE9FF;
+  --ck-color-danger: #C62828;
+  --ck-color-warning: #6B6B72;
+  --ck-color-success-generic: #14804A;
 }

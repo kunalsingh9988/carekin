@@ -13,7 +13,7 @@ function stageStates(status: VerificationStatus): StageState[] {
 
 const DOT_CLASSES: Record<StageState, string> = {
   complete: "bg-verified",
-  current: "bg-warning",
+  current: "bg-accent",
   failed: "bg-danger",
   upcoming: "bg-border",
 };

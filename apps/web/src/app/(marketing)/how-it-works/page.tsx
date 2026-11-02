@@ -6,13 +6,13 @@ export default function HowItWorksPage() {
   return (
     <main className="mx-auto flex max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
       <div className="text-center">
-        <h1 className="text-3xl font-semibold text-text-primary">Trust isn&apos;t a feature here. It&apos;s the whole product.</h1>
+        <h1 className="text-4xl font-bold leading-4xl text-text-primary">Trust isn&apos;t a feature here. It&apos;s the whole product.</h1>
         <p className="mt-2 text-text-secondary">
           Before anyone appears in a search result, they&apos;ve been through four separate checks — not just a
           background-check API call.
         </p>
-        <Link href="/search" className="mt-4 inline-block text-sm font-semibold text-accent-text underline">
-          See who&apos;s verified near you
+        <Link href="/search" className="mt-4 inline-block text-sm font-semibold text-accent-text">
+          See who&apos;s verified near you →
         </Link>
       </div>
 
@@ -47,7 +47,7 @@ export default function HowItWorksPage() {
 
       <Link
         href="/search"
-        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white"
+        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-text"
       >
         See who&apos;s verified near you
       </Link>

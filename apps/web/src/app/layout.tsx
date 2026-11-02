@@ -1,26 +1,24 @@
 import type { Metadata } from "next";
-import { Anek_Devanagari, Anek_Latin, IBM_Plex_Sans, IBM_Plex_Sans_Devanagari } from "next/font/google";
+import { Bricolage_Grotesque, Figtree, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { Navbar } from "@/components/layout/Navbar";
 import { SeedInitializer } from "@/components/SeedInitializer";
 
-// Loaded here so tokens.css's `font-family: "Anek Latin", ...` etc. actually
-// resolve to a registered @font-face, not just a name the browser can't
-// find. Devanagari cuts loaded alongside their Latin counterparts per
-// Section 6's non-negotiable Hindi-support requirement.
-const anekLatin = Anek_Latin({ variable: "--next-font-anek-latin", subsets: ["latin"] });
-const anekDevanagari = Anek_Devanagari({ variable: "--next-font-anek-devanagari", subsets: ["devanagari"] });
-const ibmPlexSans = IBM_Plex_Sans({ variable: "--next-font-ibm-plex-sans", subsets: ["latin"], weight: ["400", "500", "600"] });
-const ibmPlexSansDevanagari = IBM_Plex_Sans_Devanagari({
-  variable: "--next-font-ibm-plex-sans-devanagari",
+// Loaded here so tokens.css's font var references actually resolve to
+// registered @font-faces. Brand pairing B: Bricolage Grotesque for display
+// (>=28px headings only), Figtree for UI, Noto Sans Devanagari for Hindi —
+// all variable fonts, so no weight list needed.
+const bricolageGrotesque = Bricolage_Grotesque({ variable: "--next-font-bricolage-grotesque", subsets: ["latin"] });
+const figtree = Figtree({ variable: "--next-font-figtree", subsets: ["latin"] });
+const notoSansDevanagari = Noto_Sans_Devanagari({
+  variable: "--next-font-noto-sans-devanagari",
   subsets: ["devanagari"],
-  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "CareKin",
+  title: { default: "CareKin", template: "%s · CareKin" },
   description: "Verified elder care and babysitting, close to home. (Prototype — no real backend.)",
 };
 
@@ -32,7 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${anekLatin.variable} ${anekDevanagari.variable} ${ibmPlexSans.variable} ${ibmPlexSansDevanagari.variable} h-full antialiased`}
+      className={`${bricolageGrotesque.variable} ${figtree.variable} ${notoSansDevanagari.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-bg-canvas text-text-primary">
         <SeedInitializer />

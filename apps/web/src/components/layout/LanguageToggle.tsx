@@ -12,7 +12,7 @@ export function LanguageToggle() {
   const [lang, setLang] = useState<Lang>("en");
 
   useEffect(() => {
-    setLang(get<Lang>("lang", "en"));
+    queueMicrotask(() => setLang(get<Lang>("lang", "en")));
   }, []);
 
   function toggle() {

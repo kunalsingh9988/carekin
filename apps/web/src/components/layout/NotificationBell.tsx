@@ -18,10 +18,16 @@ export function NotificationBell({ userId }: { userId: string }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   async function handleOpen() {
-    setOpen((o) => !o);
-    if (!open && unreadCount > 0) {
-      await markAllRead(userId);
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    const next = !open;
+    setOpen(next);
+    if (next) {
+      // Refetch on open so notifications added since mount actually show.
+      const fresh = await listNotifications(userId);
+      setNotifications(fresh);
+      if (fresh.some((n) => !n.read)) {
+        await markAllRead(userId);
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      }
     }
   }
 
@@ -42,7 +48,7 @@ export function NotificationBell({ userId }: { userId: string }) {
           ) : (
             <ul className="flex max-h-80 flex-col gap-1 overflow-y-auto">
               {notifications.map((n) => (
-                <li key={n.id} className="rounded-md p-2 text-sm text-text-primary hover:bg-bg-canvas">
+                <li key={n.id} className="rounded-md p-2 text-sm text-text-primary hover:bg-surface-secondary">
                   {n.message}
                 </li>
               ))}

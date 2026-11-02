@@ -13,7 +13,7 @@ export function BookingSummaryCard({ providerName, pending }: { providerName: st
         <p className="text-sm font-medium text-text-primary">{providerName}</p>
         <p className="text-xs text-text-secondary">{pending.type === "subscription" ? "Weekly plan" : "One-off visit"}</p>
       </div>
-      <p className="text-sm font-semibold text-accent-text">{priceLabel}</p>
+      <p className="price text-sm font-semibold text-accent-text">{priceLabel}</p>
     </Card>
   );
 }

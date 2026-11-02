@@ -1,7 +1,7 @@
 export function StepProgress({ step, total, label }: { step: number; total: number; label: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+      <p className="text-xs font-semibold text-text-secondary">
         Step {step} of {total}
       </p>
       <div className="flex gap-1">

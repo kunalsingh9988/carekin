@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { oneOffVisitPricePaise, weeklyPlanPricePaise, WEEKLY_DISCOUNT_PCT } from "@/lib/business";
+import { oneOffVisitPricePaise, weeklyPlanPricePaise, WEEKLY_DISCOUNT_PCT, VISITS_PER_WEEK } from "@/lib/business";
 import { Card } from "@/components/ui/Card";
 
 const FAQ = [
@@ -11,37 +11,49 @@ const FAQ = [
 export default function PricingPage() {
   const oneOff = oneOffVisitPricePaise();
   const weekly = weeklyPlanPricePaise();
+  const perVisitWeekly = Math.round(weekly / VISITS_PER_WEEK);
 
   return (
     <main className="mx-auto flex max-w-3xl flex-1 flex-col gap-10 px-6 py-16">
       <div className="text-center">
-        <h1 className="text-3xl font-semibold text-text-primary">Simple pricing. No surprise fees at checkout.</h1>
-        <p className="mt-2 text-text-secondary">
+        <h1 className="text-4xl font-bold leading-4xl text-text-primary">Simple pricing. No surprise fees at checkout.</h1>
+        <p className="mt-2 text-base leading-base text-text-secondary">
           What you see here is what you pay — our commission is already included, not added later.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card className="flex flex-col gap-3">
-          <p className="text-lg font-semibold text-text-primary">Pay per visit</p>
-          <p className="text-sm text-text-secondary">Best for occasional or one-time care needs</p>
-          <p className="mt-2 text-2xl font-semibold text-accent-text">
-            From ₹{(oneOff / 100).toFixed(0)}<span className="text-sm font-normal text-text-secondary"> per visit</span>
+          <p className="text-lg font-semibold leading-lg text-text-primary">Pay per visit</p>
+          <p className="text-sm leading-sm text-text-secondary">Best for occasional or one-time care needs</p>
+          <p className="mt-2 text-3xl font-bold leading-3xl text-text-primary">
+            <span className="price">₹{(oneOff / 100).toFixed(0)}</span>
+            <span className="text-sm font-normal text-text-secondary"> per visit</span>
           </p>
-          <Link href="/search" className="min-h-tap mt-2 flex items-center justify-center rounded-md border border-border text-sm font-semibold text-text-primary">
+          <Link href="/search" className="min-h-tap mt-2 flex items-center justify-center rounded-md border border-border text-sm font-semibold text-text-primary transition-colors hover:bg-surface-secondary">
             Search one-off availability
           </Link>
         </Card>
 
-        <Card className="flex flex-col gap-3 border-2 border-accent">
-          <p className="text-xs font-semibold uppercase tracking-wide text-accent-text">Most families choose this</p>
-          <p className="text-lg font-semibold text-text-primary">Save {WEEKLY_DISCOUNT_PCT}% vs. booking one-off</p>
-          <p className="text-sm text-text-secondary">Best for ongoing elder care or regular babysitting</p>
-          <p className="mt-2 text-2xl font-semibold text-accent-text">
-            From ₹{(weekly / 100).toFixed(0)}<span className="text-sm font-normal text-text-secondary"> per week</span>
+        {/* Recommended plan — violet-tint selected state + accent border;
+            the only violet action on this view is its CTA. */}
+        <Card className="relative flex flex-col gap-3 border-accent">
+          <span className="absolute -top-3 left-4 rounded-full bg-accent-tint px-3 py-1 text-xs font-semibold text-accent-text">
+            Most families choose this
+          </span>
+          <p className="text-lg font-semibold leading-lg text-text-primary">Weekly plan</p>
+          <p className="text-sm leading-sm text-text-secondary">Best for ongoing elder care or regular babysitting</p>
+          <p className="mt-2 text-3xl font-bold leading-3xl text-text-primary">
+            <span className="price">₹{(weekly / 100).toFixed(0)}</span>
+            <span className="text-sm font-normal text-text-secondary"> per week</span>
           </p>
-          <p className="text-xs text-text-secondary">Cancel or change your plan anytime — no lock-in</p>
-          <Link href="/search" className="min-h-tap mt-2 flex items-center justify-center rounded-md bg-accent text-sm font-semibold text-white">
+          <p className="text-sm leading-sm">
+            <span className="price font-semibold text-verified">₹{(perVisitWeekly / 100).toFixed(0)}/visit</span>
+            <span className="price ml-2 text-text-secondary line-through">₹{(oneOff / 100).toFixed(0)}</span>
+            <span className="ml-1 text-text-secondary">— {WEEKLY_DISCOUNT_PCT}% less than booking one at a time</span>
+          </p>
+          <p className="text-xs leading-sm text-text-secondary">Cancel or change your plan anytime — no lock-in</p>
+          <Link href="/search" className="min-h-tap mt-2 flex items-center justify-center rounded-md bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent-text">
             See weekly plans
           </Link>
         </Card>
@@ -51,7 +63,7 @@ export default function PricingPage() {
         {FAQ.map((item) => (
           <Card key={item.q}>
             <p className="font-medium text-text-primary">{item.q}</p>
-            <p className="mt-1 text-sm text-text-secondary">{item.a}</p>
+            <p className="mt-1 text-sm leading-sm text-text-secondary">{item.a}</p>
           </Card>
         ))}
       </div>

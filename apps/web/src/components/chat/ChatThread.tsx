@@ -42,10 +42,10 @@ export function ChatThread({ bookingId, user }: { bookingId: string; user: Curre
 
   return (
     <div className="flex flex-1 flex-col gap-3">
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto rounded-lg border border-border bg-surface p-4">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto rounded-lg bg-surface-secondary p-4">
         {messages.length === 0 && <p className="text-center text-sm text-text-secondary">Say hello — messages appear here.</p>}
         {messages.map((m) => (
-          <div key={m.id} className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${m.sender_id === user.id ? "self-end bg-accent text-white" : "self-start bg-bg-canvas text-text-primary"}`}>
+          <div key={m.id} className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${m.sender_id === user.id ? "self-end bg-accent text-white" : "self-start bg-surface text-text-primary"}`}>
             {m.content}
           </div>
         ))}
@@ -56,9 +56,9 @@ export function ChatThread({ bookingId, user }: { bookingId: string; user: Curre
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Type a message…"
-          className="min-h-tap flex-1 rounded-md border border-border bg-bg-canvas px-4 text-base text-text-primary"
+          className="min-h-tap flex-1 rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent"
         />
-        <button type="submit" className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white">
+        <button type="submit" className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-text">
           Send
         </button>
       </form>

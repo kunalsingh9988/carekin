@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginAsRole } from "@/lib/auth";
+import { loginAsDemo, loginAsRole } from "@/lib/auth";
 import { getMyProvider } from "@/lib/storage/repositories/providers";
 import { PhoneNumber, UserRole, type UserRoleValue } from "@/lib/validation/schemas";
 import { useAuthModal } from "./AuthModalProvider";
@@ -23,8 +23,18 @@ export function AuthModal() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) setRole(defaultRole);
+    if (isOpen) queueMicrotask(() => setRole(defaultRole));
   }, [isOpen, defaultRole]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") handleCancel();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -64,7 +74,20 @@ export function AuthModal() {
     const user = loginAsRole(phone, parsedRole.success ? parsedRole.data : "family");
     reset();
     close();
+    await routeAfterLogin(user);
+  }
 
+  // The no-login path: one tap continues on the seeded demo identity for
+  // the selected role — same destination routing as a real login.
+  async function handleSkip() {
+    const parsedRole = UserRole.safeParse(role);
+    const user = loginAsDemo(parsedRole.success ? parsedRole.data : "family");
+    reset();
+    close();
+    await routeAfterLogin(user);
+  }
+
+  async function routeAfterLogin(user: { id: string; role: UserRoleValue }) {
     if (user.role === "admin") {
       router.push("/admin/verification-queue");
     } else if (user.role === "provider") {
@@ -105,7 +128,7 @@ export function AuthModal() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+919876543210"
-                className="min-h-tap rounded-md border border-border bg-bg-canvas px-4 text-base text-text-primary"
+                className="min-h-tap rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent"
               />
             </label>
 
@@ -115,10 +138,14 @@ export function AuthModal() {
               <button type="button" onClick={handleCancel} className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary">
                 Cancel
               </button>
-              <button type="submit" className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white">
+              <button type="submit" className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
                 Send OTP
               </button>
             </div>
+
+            <button type="button" onClick={handleSkip} className="min-h-tap rounded-md text-sm font-medium text-accent-text transition-colors hover:text-accent">
+              Skip — explore as a demo {role === "family" ? "family" : role}
+            </button>
           </form>
         ) : (
           <form onSubmit={handleVerify} className="flex flex-col gap-4">
@@ -134,7 +161,7 @@ export function AuthModal() {
                 maxLength={6}
                 inputMode="numeric"
                 placeholder="123456"
-                className="min-h-tap rounded-md border border-border bg-bg-canvas px-4 text-center text-lg tracking-widest text-text-primary"
+                className="min-h-tap rounded-md border border-border bg-surface px-4 text-center text-lg tracking-widest text-text-primary placeholder:text-text-secondary focus:border-accent"
               />
             </label>
 
@@ -144,7 +171,7 @@ export function AuthModal() {
               <button type="button" onClick={handleCancel} className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary">
                 Cancel
               </button>
-              <button type="submit" disabled={otp.length !== 6} className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white disabled:opacity-50">
+              <button type="submit" disabled={otp.length !== 6} className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text disabled:opacity-50">
                 Verify
               </button>
             </div>
@@ -160,7 +187,7 @@ function RoleButton({ label, active, onClick }: { label: string; active: boolean
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-tap flex-1 rounded-md border px-2 text-xs font-medium ${active ? "border-accent bg-accent text-white" : "border-border text-text-secondary"}`}
+      className={`min-h-tap flex-1 rounded-full border px-2 text-xs font-medium ${active ? "border-accent bg-accent-tint text-accent-text" : "border-border text-text-secondary"}`}
     >
       {label}
     </button>

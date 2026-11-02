@@ -8,6 +8,7 @@ import { getMyProvider } from "@/lib/storage/repositories/providers";
 import { listBookingsForProvider, updateBookingStatus } from "@/lib/storage/repositories/bookings";
 import { getFamilyProfileById, getCareRecipient } from "@/lib/storage/repositories/families";
 import { ensurePayoutForCompletedBooking } from "@/lib/storage/repositories/payouts";
+import { getPaymentForBooking } from "@/lib/storage/repositories/payments";
 import { addNotification } from "@/lib/storage/repositories/notifications";
 import type { Booking, CareRecipient, FamilyProfile, Provider } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
@@ -23,6 +24,7 @@ export default function ProviderBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [families, setFamilies] = useState<Record<string, FamilyProfile>>({});
   const [recipients, setRecipients] = useState<Record<string, CareRecipient>>({});
+  const [paidRequests, setPaidRequests] = useState<Record<string, boolean>>({});
   const [tab, setTab] = useState<Tab>("requests");
 
   async function load(providerId: string) {
@@ -36,15 +38,23 @@ export default function ProviderBookingsPage() {
       [...new Set(list.map((b) => b.care_recipient_id))].map(async (id) => [id, await getCareRecipient(id)] as const),
     );
     setRecipients(Object.fromEntries(recipientEntries.filter(([, r]) => r) as [string, CareRecipient][]));
+    // `requested` means "created but not yet confirmed" — a provider may
+    // only ACCEPT a request the family has actually paid for; unpaid
+    // leftovers (abandoned checkout) can only be declined.
+    const paidEntries = await Promise.all(
+      list
+        .filter((b) => b.status === "requested")
+        .map(async (b) => [b.id, (await getPaymentForBooking(b.id))?.status === "captured"] as const),
+    );
+    setPaidRequests(Object.fromEntries(paidEntries));
   }
 
   useEffect(() => {
     if (!user) return;
     getMyProvider(user.id).then((p) => {
       setProvider(p);
-      if (p) load(p.id);
+      if (p) Promise.resolve().then(() => load(p.id));
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   if (!user) return null;
@@ -63,6 +73,11 @@ export default function ProviderBookingsPage() {
       accept ? "booking_confirmed" : "booking_cancelled",
       accept ? "Your booking was accepted — chat is now unlocked." : "Your booking was declined by the provider.",
     );
+    await load(provider!.id);
+  }
+
+  async function markInProgress(booking: Booking) {
+    await updateBookingStatus(booking.id, "in_progress");
     await load(provider!.id);
   }
 
@@ -102,24 +117,38 @@ export default function ProviderBookingsPage() {
                 </div>
                 <BookingStatusBadge status={b.status} />
               </div>
-              {tab === "requests" && (
-                <div className="flex gap-2">
-                  <Button variant="secondary" onClick={() => respond(b, false)} className="flex-1">
-                    Decline
-                  </Button>
-                  <Button onClick={() => respond(b, true)} className="flex-1">
-                    Accept
-                  </Button>
-                </div>
-              )}
+              {tab === "requests" &&
+                (paidRequests[b.id] ? (
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => respond(b, false)} className="flex-1">
+                      Decline
+                    </Button>
+                    <Button onClick={() => respond(b, true)} className="flex-1">
+                      Accept
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-text-secondary">Awaiting the family&apos;s payment — can&apos;t accept yet.</p>
+                    <Button variant="secondary" onClick={() => respond(b, false)}>
+                      Decline
+                    </Button>
+                  </div>
+                ))}
               {tab === "upcoming" && (
                 <div className="flex items-center justify-between gap-2">
-                  <Link href={`/provider/bookings/${b.id}/chat`} className="text-sm text-accent-text underline">
-                    Open chat
+                  <Link href={`/provider/bookings/${b.id}/chat`} className="text-sm font-medium text-accent-text">
+                    Open chat →
                   </Link>
-                  <Button variant="secondary" onClick={() => markCompleted(b)}>
-                    Mark completed
-                  </Button>
+                  {b.status === "confirmed" ? (
+                    <Button variant="secondary" onClick={() => markInProgress(b)}>
+                      Start visit
+                    </Button>
+                  ) : (
+                    <Button variant="secondary" onClick={() => markCompleted(b)}>
+                      Mark completed
+                    </Button>
+                  )}
                 </div>
               )}
             </Card>

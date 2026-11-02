@@ -10,13 +10,13 @@ interface CommonProps {
 }
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-accent text-white",
-  secondary: "border border-border text-text-primary",
+  primary: "bg-accent text-white hover:bg-accent-text active:bg-accent-text",
+  secondary: "border border-border bg-surface text-text-primary hover:bg-surface-secondary",
   danger: "bg-danger text-white",
-  ghost: "text-text-secondary",
+  ghost: "text-accent-text hover:bg-accent-tint",
 };
 
-const BASE = "min-h-tap inline-flex items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold disabled:opacity-50 disabled:pointer-events-none";
+const BASE = "min-h-tap inline-flex items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none";
 
 export function Button({
   variant = "primary",

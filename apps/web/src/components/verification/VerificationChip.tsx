@@ -3,7 +3,7 @@ import type { VerificationStatus } from "@/lib/storage/types";
 
 const CONFIG: Record<VerificationStatus, { label: string; icon: typeof CircleCheck; className: string }> = {
   approved: { label: "Verified", icon: CircleCheck, className: "text-verified" },
-  pending: { label: "Under review", icon: Clock, className: "text-warning" },
+  pending: { label: "Under review", icon: Clock, className: "text-text-secondary" },
   rejected: { label: "Not approved", icon: CircleX, className: "text-danger" },
 };
 

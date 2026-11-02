@@ -10,11 +10,14 @@
 @theme inline {
   --color-bg-canvas: var(--ck-color-bg-canvas);
   --color-surface: var(--ck-color-surface);
+  --color-surface-secondary: var(--ck-color-surface-secondary);
   --color-border: var(--ck-color-border);
   --color-text-primary: var(--ck-color-text-primary);
+  --color-ink: var(--ck-color-ink);
   --color-text-secondary: var(--ck-color-text-secondary);
   --color-accent: var(--ck-color-accent);
   --color-accent-text: var(--ck-color-accent-text);
+  --color-accent-tint: var(--ck-color-accent-tint);
   --color-verified: var(--ck-color-verified);
   --color-highlight: var(--ck-color-highlight);
   --color-danger: var(--ck-color-danger);
@@ -35,6 +38,13 @@
   --text-3xl: var(--ck-text-3xl);
   --text-4xl: var(--ck-text-4xl);
   --text-5xl: var(--ck-text-5xl);
+
+  --leading-sm: var(--ck-leading-sm);
+  --leading-base: var(--ck-leading-base);
+  --leading-lg: var(--ck-leading-lg);
+  --leading-3xl: var(--ck-leading-3xl);
+  --leading-4xl: var(--ck-leading-4xl);
+  --leading-5xl: var(--ck-leading-5xl);
 
   --spacing-0: var(--ck-space-0);
   --spacing-1: var(--ck-space-1);
@@ -64,10 +74,37 @@ body {
   font-family: var(--font-body-latin);
 }
 
+/* Browser surfaces belong to the design system too: violet selection,
+ * violet focus ring, tabular figures in numbers. */
+::selection {
+  background: var(--color-accent-tint);
+  color: var(--color-text-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Display face is reserved for headings 28px and up (brand rule). */
+h1,
+h2,
+.font-display-latin {
+  font-family: var(--font-display-latin);
+  text-wrap: balance;
+}
+
+/* Prices and ratings always render tabular figures. */
+.price,
+.rating {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Demo-mode banner shown on simulated flows (OTP, payment, KYC) — see
- * Guardrails Section 2: "simulate, don't fake silently." */
+ * Guardrails Section 2: "simulate, don't fake silently." Neutral Mist
+ * treatment: simulation is information, not a warning. */
 .demo-note {
-  border: 1px dashed var(--color-warning);
-  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
-  color: var(--color-warning);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
 }

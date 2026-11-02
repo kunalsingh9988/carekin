@@ -22,12 +22,10 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
 
   return (
     <main className="mx-auto flex max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
-      {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-accent-text">{city.name}</p>
-        <h1 className="text-3xl font-semibold text-text-primary">Verified caregivers &amp; babysitters in {city.name}</h1>
+        <h1 className="text-4xl font-bold leading-4xl text-text-primary">Verified caregivers &amp; babysitters in {city.name}</h1>
         <p className="mt-2 text-text-secondary">
           Live in {city.neighborhoods} — every provider passes ID verification, a police check, and an in-person
           interview before appearing here.
@@ -41,7 +39,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
 
       <Link
         href={`/search?city=${city.slug}`}
-        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white"
+        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-text"
       >
         Search verified caregivers in {city.name}
       </Link>
