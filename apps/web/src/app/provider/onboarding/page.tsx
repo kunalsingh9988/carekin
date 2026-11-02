@@ -9,6 +9,7 @@ import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
 import { createProviderProfile, getMyProvider } from "@/lib/storage/repositories/providers";
 import { ProviderProfileSchema, type ProviderProfileFormValues } from "@/lib/validation/schemas";
 import { Button } from "@/components/ui/Button";
+import { StepProgress } from "@/components/ui/StepProgress";
 import { TextField, TextAreaField, SelectField } from "@/components/ui/FormField";
 
 export default function ProviderOnboardingPage() {
@@ -52,10 +53,11 @@ export default function ProviderOnboardingPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-1 flex-col justify-center gap-6 px-6 py-16">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 py-12">
+      <StepProgress step={1} total={2} label="Provider onboarding" />
       <div>
-        <h1 className="text-2xl font-semibold text-text-primary">Set up your provider profile</h1>
-        <p className="mt-1 text-sm text-text-secondary">You won&apos;t be visible to families until our team verifies you.</p>
+        <h1 className="text-2xl font-bold leading-2xl text-text-primary">Set up your provider profile</h1>
+        <p className="mt-1 text-sm leading-sm text-text-secondary">You won&apos;t be visible to families until our team verifies you.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">

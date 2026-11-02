@@ -8,6 +8,7 @@ import { getMyProvider, submitDocuments } from "@/lib/storage/repositories/provi
 import type { DocumentType, Provider } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { StepProgress } from "@/components/ui/StepProgress";
 
 const REQUIRED: { type: DocumentType; label: string }[] = [
   { type: "id_proof", label: "Government ID (Aadhaar, PAN, etc.)" },
@@ -51,10 +52,11 @@ export default function DocumentUploadPage() {
   const requiredDone = uploaded.id_proof && uploaded.address_proof;
 
   return (
-    <main className="mx-auto flex max-w-md flex-1 flex-col justify-center gap-6 px-6 py-16">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 py-12">
+      <StepProgress step={2} total={2} label="Provider onboarding" />
       <div>
-        <h1 className="text-2xl font-semibold text-text-primary">Upload your documents</h1>
-        <p className="mt-1 text-sm text-text-secondary">Our team reviews these before you go live.</p>
+        <h1 className="text-2xl font-bold leading-2xl text-text-primary">Upload your documents</h1>
+        <p className="mt-1 text-sm leading-sm text-text-secondary">Our team reviews these before you go live.</p>
       </div>
 
       <p className="demo-note rounded-md px-3 py-2 text-xs">

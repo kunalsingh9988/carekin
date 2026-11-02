@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginAsDemo, loginAsRole } from "@/lib/auth";
 import { getMyProvider } from "@/lib/storage/repositories/providers";
+import { getFamilyProfile } from "@/lib/storage/repositories/families";
 import { PhoneNumber, UserRole, type UserRoleValue } from "@/lib/validation/schemas";
 import { useAuthModal } from "./AuthModalProvider";
 
@@ -94,10 +95,10 @@ export function AuthModal() {
       const provider = await getMyProvider(user.id);
       router.push(provider ? "/provider/verification-status" : "/provider/onboarding");
     } else {
-      // This popup is for returning users (Section 5.1) — a brand new
-      // family only gets a profile by going through /book/[slug]/profile.
-      // /family (dashboard) handles the "no profile yet" case itself.
-      router.push("/family");
+      // New family → the onboarding flow builds their profile + first care
+      // recipient; a returning family goes straight to the dashboard.
+      const family = await getFamilyProfile(user.id);
+      router.push(family ? "/family" : "/family/onboarding");
     }
     router.refresh();
   }
