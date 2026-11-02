@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getBooking } from "@/lib/storage/repositories/bookings";
 import { getProvider } from "@/lib/storage/repositories/providers";
+import { getFamilyProfile } from "@/lib/storage/repositories/families";
 import { submitReview } from "@/lib/storage/repositories/reviews";
 import { REFERRAL_BONUS_PAISE } from "@/lib/storage/repositories/referrals";
 import { ReviewSchema, type ReviewFormValues } from "@/lib/validation/schemas";
@@ -21,7 +22,7 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
   const { id } = use(params);
   const user = useRequireRole("family");
   const router = useRouter();
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const [booking, setBooking] = useState<Booking | null | undefined>(undefined);
   const [provider, setProvider] = useState<Provider | null>(null);
   const [rating, setRating] = useState(5);
   const [submitted, setSubmitted] = useState(false);
@@ -32,18 +33,21 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
   });
 
   useEffect(() => {
-    getBooking(id).then((b) => {
+    if (!user) return;
+    getBooking(id).then(async (b) => {
+      // Only for completed bookings the family actually owns (Section 4) —
+      // enforced here, not just hidden in the UI.
+      const family = b ? await getFamilyProfile(user.id) : null;
+      if (!b || !family || b.family_id !== family.id || b.status !== "completed") {
+        router.replace(`/family/bookings/${id}`);
+        return;
+      }
       setBooking(b);
-      if (b) getProvider(b.provider_id).then(setProvider);
+      getProvider(b.provider_id).then(setProvider);
     });
-  }, [id]);
+  }, [id, user, router]);
 
-  if (!user) return null;
-  // Only for completed bookings (Section 4) — enforced here, not just hidden in the UI.
-  if (booking && booking.status !== "completed") {
-    router.replace(`/family/bookings/${id}`);
-    return null;
-  }
+  if (!user || !booking) return null;
 
   async function onSubmit(values: ReviewFormValues) {
     if (!booking) return;
@@ -81,7 +85,7 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
         <div className="flex justify-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
             <button key={i} type="button" onClick={() => setRating(i + 1)} aria-label={`${i + 1} stars`}>
-              <Star className={`h-8 w-8 ${i < rating ? "fill-warning text-warning" : "text-border"}`} />
+              <Star className={`h-8 w-8 ${i < rating ? "fill-verified text-verified" : "text-border"}`} />
             </button>
           ))}
         </div>

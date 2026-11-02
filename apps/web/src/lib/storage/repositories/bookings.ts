@@ -12,6 +12,7 @@ export interface CreateBookingInput {
   scheduledAt: string;
   durationHours: number;
   amountPaise: number;
+  subscriptionId?: string | null;
 }
 
 export async function createBooking(input: CreateBookingInput): Promise<Booking> {
@@ -28,7 +29,7 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
     duration_hours: input.durationHours,
     amount_paise: input.amountPaise,
     commission_paise: Math.round(input.amountPaise * DEFAULT_COMMISSION_RATE),
-    subscription_id: null,
+    subscription_id: input.subscriptionId ?? null,
     created_at: now,
     updated_at: now,
   };
@@ -60,6 +61,18 @@ export async function updateBookingStatus(id: string, status: BookingStatus): Pr
   const existing = all.find((b) => b.id === id);
   if (!existing) throw new Error(`Booking ${id} not found`);
   const updated: Booking = { ...existing, status, updated_at: new Date().toISOString() };
+  set(
+    KEY,
+    all.map((b) => (b.id === id ? updated : b)),
+  );
+  return updated;
+}
+
+export async function linkBookingToSubscription(id: string, subscriptionId: string): Promise<Booking> {
+  const all = get<Booking[]>(KEY, []);
+  const existing = all.find((b) => b.id === id);
+  if (!existing) throw new Error(`Booking ${id} not found`);
+  const updated: Booking = { ...existing, subscription_id: subscriptionId, updated_at: new Date().toISOString() };
   set(
     KEY,
     all.map((b) => (b.id === id ? updated : b)),

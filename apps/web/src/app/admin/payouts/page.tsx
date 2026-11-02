@@ -24,8 +24,7 @@ export default function AdminPayoutsPage() {
   }
 
   useEffect(() => {
-    if (user) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (user) Promise.resolve().then(load);
   }, [user]);
 
   if (!user) return null;
@@ -58,7 +57,7 @@ export default function AdminPayoutsPage() {
                 <p className="text-sm font-medium text-text-primary">{providers[p.provider_id]?.name ?? "Provider"}</p>
                 <p className="text-xs text-text-secondary">₹{(p.amount_paise / 100).toFixed(0)}</p>
               </div>
-              <span className={`text-xs font-semibold ${p.status === "paid" ? "text-success-generic" : "text-warning"}`}>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.status === "paid" ? "bg-verified/10 text-verified" : "bg-surface-secondary text-text-secondary"}`}>
                 {p.status === "paid" ? "Paid" : "Pending"}
               </span>
             </Card>

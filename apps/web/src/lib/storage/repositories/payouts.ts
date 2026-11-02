@@ -1,5 +1,4 @@
 import { get, newId, set } from "../client";
-import { DEFAULT_COMMISSION_RATE } from "../../business";
 import type { Booking, Payout } from "../types";
 import { listAllBookings } from "./bookings";
 
@@ -26,7 +25,7 @@ export async function ensurePayoutForCompletedBooking(booking: Booking): Promise
     id: newId(),
     provider_id: booking.provider_id,
     booking_id: booking.id,
-    amount_paise: booking.amount_paise - Math.round(booking.amount_paise * DEFAULT_COMMISSION_RATE),
+    amount_paise: booking.amount_paise - booking.commission_paise,
     status: "pending",
     created_at: new Date().toISOString(),
     paid_at: null,

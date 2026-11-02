@@ -7,3 +7,4 @@ export * as messagesRepo from "./messages";
 export * as reviewsRepo from "./reviews";
 export * as adminRepo from "./admin";
 export * as notificationsRepo from "./notifications";
+export * as subscriptionsRepo from "./subscriptions";

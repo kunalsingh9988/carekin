@@ -19,7 +19,10 @@ export function oneOffVisitPricePaise(durationHours: number = DEFAULT_VISIT_DURA
   return Math.round(HOURLY_RATE_PAISE * durationHours);
 }
 
-export function weeklyPlanPricePaise(durationHours: number = DEFAULT_VISIT_DURATION_HOURS): number {
-  const undiscounted = oneOffVisitPricePaise(durationHours) * VISITS_PER_WEEK;
+export function weeklyPlanPricePaise(
+  durationHours: number = DEFAULT_VISIT_DURATION_HOURS,
+  visitsPerWeek: number = VISITS_PER_WEEK,
+): number {
+  const undiscounted = oneOffVisitPricePaise(durationHours) * visitsPerWeek;
   return Math.round(undiscounted * (1 - WEEKLY_DISCOUNT_PCT / 100));
 }

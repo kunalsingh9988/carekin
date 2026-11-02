@@ -43,8 +43,11 @@ export interface GuestSafeProviderWithDistance extends GuestSafeProvider {
 }
 
 function toGuestSafe<T extends Provider>(p: T): Omit<T, "phone" | "latitude" | "longitude"> {
-  const { phone: _phone, latitude: _lat, longitude: _lng, ...rest } = p;
-  return rest;
+  const rest: Partial<T> = { ...p };
+  delete rest.phone;
+  delete rest.latitude;
+  delete rest.longitude;
+  return rest as Omit<T, "phone" | "latitude" | "longitude">;
 }
 
 // Mirrors the real RLS-gated search RPC: verification_status === 'approved'

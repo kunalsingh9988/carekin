@@ -1,13 +1,15 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { useRouter, notFound } from "next/navigation";
+import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
 import { getFamilyProfile, saveFamilyProfile, getCareRecipients, addElderRecipient } from "@/lib/storage/repositories/families";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
-import { setPendingBooking, getPendingBooking } from "@/lib/storage/session";
-import type { CareRecipient, CareRecipientType, FamilyProfile } from "@/lib/storage/types";
+import { setPendingBooking, getPendingBooking, getPendingReferral, clearPendingReferral, setPendingChildRecipient } from "@/lib/storage/session";
+import { findFamilyIdByReferralCode, recordReferral } from "@/lib/storage/repositories/referrals";
+import { get } from "@/lib/storage/client";
+import type { CareRecipient, CareRecipientType, FamilyProfile, PendingBooking } from "@/lib/storage/types";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { Button } from "@/components/ui/Button";
@@ -16,9 +18,10 @@ import { TextField, TextAreaField } from "@/components/ui/FormField";
 export default function BookingProfilePage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
   const router = useRouter();
-  const user = getCurrentUser();
+  const user = useRequireRole("family");
 
-  const [provider, setProvider] = useState<GuestSafeProvider | null>(null);
+  const [provider, setProvider] = useState<GuestSafeProvider | null | undefined>(undefined);
+  const [pending, setPending] = useState<PendingBooking | null>(null);
   const [family, setFamily] = useState<FamilyProfile | null>(null);
   const [recipients, setRecipients] = useState<CareRecipient[]>([]);
   const { coords, fetchLocation } = useCurrentLocation();
@@ -31,15 +34,16 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.replace(`/book/${providerId}`);
-      return;
-    }
+    if (!user) return;
     getProviderPublic(providerId).then(setProvider);
-    if (!getPendingBooking()) {
-      router.replace(`/book/${providerId}`);
-      return;
-    }
+    queueMicrotask(() => {
+      const existing = getPendingBooking();
+      if (!existing || existing.providerId !== providerId) {
+        router.replace(`/book/${providerId}`);
+        return;
+      }
+      setPending(existing);
+    });
     getFamilyProfile(user.id).then((f) => {
       setFamily(f);
       if (f) {
@@ -53,7 +57,8 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providerId]);
 
-  if (!user || !provider) return null;
+  if (provider === null) notFound();
+  if (!user || provider === undefined) return null;
 
   // Returning-family shortcut (Section 6.8) — an existing care recipient
   // means skip straight past the form entirely.
@@ -67,6 +72,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
     if (!user) return;
     setSubmitting(true);
 
+    const isNewFamily = !family;
     const savedFamily = await saveFamilyProfile(user.id, {
       name,
       address,
@@ -74,20 +80,36 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
       longitude: coords?.longitude ?? family?.longitude ?? 77.6146,
     });
 
+    // Referral capture (Section: give-₹X-get-₹X) — recorded the moment a
+    // NEW family profile first exists; never for returning families, never
+    // for self-referrals (recordReferral dedupes and rejects same-id).
+    if (isNewFamily) {
+      const referral = getPendingReferral();
+      if (referral) {
+        const allFamilies = get<FamilyProfile[]>("families", []);
+        const referrerFamilyId = await findFamilyIdByReferralCode(
+          allFamilies.map((f) => f.id),
+          referral.code,
+        );
+        if (referrerFamilyId) await recordReferral(referrerFamilyId, savedFamily.id);
+        clearPendingReferral();
+      }
+    }
+
     if (recipientType === "elder") {
       const recipient = await addElderRecipient(savedFamily.id, { name: recipientName, notes: recipientNotes || undefined });
       setPendingBooking({ careRecipientId: recipient.id });
       setSubmitting(false);
       router.push(`/book/${providerId}/pay`);
     } else {
+      // Child path goes through guardian consent — the child's details ride
+      // in session state, not the URL, so a minor's PII never sits in the
+      // address bar or history.
+      setPendingChildRecipient({ familyId: savedFamily.id, name: recipientName, notes: recipientNotes });
       setSubmitting(false);
-      router.push(
-        `/book/${providerId}/consent?familyId=${savedFamily.id}&name=${encodeURIComponent(recipientName)}&notes=${encodeURIComponent(recipientNotes)}`,
-      );
+      router.push(`/book/${providerId}/consent`);
     }
   }
-
-  const pending = getPendingBooking();
 
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
@@ -118,12 +140,18 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
         <div>
           <p className="mb-2 text-sm font-medium text-text-primary">Who needs care?</p>
           <div className="flex gap-2">
-            <Button type="button" variant={recipientType === "elder" ? "primary" : "secondary"} onClick={() => setRecipientType("elder")}>
-              Elder
-            </Button>
-            <Button type="button" variant={recipientType === "child" ? "primary" : "secondary"} onClick={() => setRecipientType("child")}>
-              Child
-            </Button>
+            {(["elder", "child"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setRecipientType(t)}
+                className={`min-h-tap flex-1 rounded-full border px-4 text-sm font-medium capitalize transition-colors ${
+                  recipientType === t ? "border-accent bg-accent-tint text-accent-text" : "border-border text-text-secondary"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
           </div>
         </div>
 

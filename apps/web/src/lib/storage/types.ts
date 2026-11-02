@@ -188,6 +188,7 @@ export interface PendingBooking {
   providerId: string;
   type: BookingType;
   frequency?: SubscriptionFrequency;
+  visitsPerWeek?: number;
   scheduledDate: string;
   scheduledTime: string;
   durationHours: number;

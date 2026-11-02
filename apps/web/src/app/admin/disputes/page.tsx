@@ -9,11 +9,14 @@ import type { Booking, Dispute } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { TextAreaField } from "@/components/ui/FormField";
 
 export default function AdminDisputesPage() {
   const user = useRequireRole("admin");
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [bookings, setBookings] = useState<Record<string, Booking>>({});
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [resolutionNotes, setResolutionNotes] = useState("");
 
   async function load() {
     const list = await listDisputes();
@@ -23,16 +26,16 @@ export default function AdminDisputesPage() {
   }
 
   useEffect(() => {
-    if (user) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (user) Promise.resolve().then(load);
   }, [user]);
 
   if (!user) return null;
 
   async function handleResolve(dispute: Dispute) {
-    const notes = window.prompt("Resolution notes:");
-    if (!notes) return;
-    await resolveDispute(dispute.id, notes);
+    if (!resolutionNotes.trim()) return;
+    await resolveDispute(dispute.id, resolutionNotes.trim());
+    setResolvingId(null);
+    setResolutionNotes("");
     load();
   }
 
@@ -54,9 +57,28 @@ export default function AdminDisputesPage() {
                 {bookings[d.booking_id] ? (bookings[d.booking_id].amount_paise / 100).toFixed(0) : "—"}
               </p>
               <p className="text-sm text-text-secondary">{d.reason}</p>
-              <Button variant="secondary" onClick={() => handleResolve(d)}>
-                Mark resolved
-              </Button>
+              {resolvingId === d.id ? (
+                <div className="flex flex-col gap-2">
+                  <TextAreaField
+                    label="Resolution notes"
+                    value={resolutionNotes}
+                    onChange={(e) => setResolutionNotes(e.target.value)}
+                    placeholder="e.g. Refunded one visit; provider warned."
+                  />
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => { setResolvingId(null); setResolutionNotes(""); }} className="flex-1">
+                      Back
+                    </Button>
+                    <Button onClick={() => handleResolve(d)} disabled={!resolutionNotes.trim()} className="flex-1">
+                      Confirm resolution
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button variant="secondary" onClick={() => setResolvingId(d.id)}>
+                  Mark resolved
+                </Button>
+              )}
             </Card>
           ))}
         </div>

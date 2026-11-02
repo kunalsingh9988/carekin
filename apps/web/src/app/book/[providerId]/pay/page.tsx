@@ -1,16 +1,17 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, notFound } from "next/navigation";
 import { CircleAlert, Loader2 } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
+import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getPendingBooking, clearPendingBooking } from "@/lib/storage/session";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
-import { createBooking, updateBookingStatus } from "@/lib/storage/repositories/bookings";
+import { createBooking, updateBookingStatus, linkBookingToSubscription } from "@/lib/storage/repositories/bookings";
+import { createSubscription } from "@/lib/storage/repositories/subscriptions";
 import { simulatePayment } from "@/lib/storage/repositories/payments";
 import { addNotification } from "@/lib/storage/repositories/notifications";
-import { weeklyPlanPricePaise, WEEKLY_DISCOUNT_PCT } from "@/lib/business";
+import { weeklyPlanPricePaise, WEEKLY_DISCOUNT_PCT, VISITS_PER_WEEK } from "@/lib/business";
 import type { PendingBooking } from "@/lib/storage/types";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { Card } from "@/components/ui/Card";
@@ -24,31 +25,40 @@ type PaymentState = "idle" | "processing" | "failed";
 export default function BookingPayPage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
   const router = useRouter();
-  const user = getCurrentUser();
+  const user = useRequireRole("family");
 
-  const [provider, setProvider] = useState<GuestSafeProvider | null>(null);
+  const [provider, setProvider] = useState<GuestSafeProvider | null | undefined>(undefined);
   const [pending, setPending] = useState<PendingBooking | null>(null);
   const [upgradedToWeekly, setUpgradedToWeekly] = useState(false);
   const [state, setState] = useState<PaymentState>("idle");
 
+  // The booking row created on the FIRST pay attempt — retries reuse the
+  // same id so a failed-then-retried payment can never duplicate into
+  // orphan `requested` bookings.
+  const [bookingId, setBookingId] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!user) {
-      router.replace(`/book/${providerId}`);
-      return;
-    }
+    if (!user) return;
     getProviderPublic(providerId).then(setProvider);
-    const existing = getPendingBooking();
-    if (!existing || !existing.careRecipientId) {
-      router.replace(`/book/${providerId}/profile`);
-      return;
-    }
-    setPending(existing);
+    queueMicrotask(() => {
+      const existing = getPendingBooking();
+      // The pending selection must exist, have a care recipient (set at
+      // /profile), and belong to THIS provider — a stale selection for a
+      // different provider must not silently book the wrong person.
+      if (!existing || !existing.careRecipientId || existing.providerId !== providerId) {
+        router.replace(`/book/${providerId}/profile`);
+        return;
+      }
+      setPending(existing);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providerId]);
 
-  if (!user || !provider || !pending) return null;
+  if (provider === null) notFound();
+  if (!user || provider === undefined || !pending) return null;
 
-  const weeklyPrice = weeklyPlanPricePaise(pending.durationHours);
+  const visitsPerWeek = pending.visitsPerWeek ?? VISITS_PER_WEEK;
+  const weeklyPrice = weeklyPlanPricePaise(pending.durationHours, visitsPerWeek);
   const effectiveAmount = upgradedToWeekly ? weeklyPrice : pending.amountPaise;
   const effectiveType = upgradedToWeekly ? "subscription" : pending.type;
 
@@ -60,25 +70,44 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
       return;
     }
 
-    const booking = await createBooking({
-      familyId: family.id,
-      providerId,
-      careRecipientId: pending!.careRecipientId!,
-      type: effectiveType,
-      scheduledAt: new Date(`${pending!.scheduledDate}T${pending!.scheduledTime || "10:00"}:00`).toISOString(),
-      durationHours: pending!.durationHours,
-      amountPaise: effectiveAmount,
-    });
+    let currentBookingId = bookingId;
+    if (!currentBookingId) {
+      const booking = await createBooking({
+        familyId: family.id,
+        providerId,
+        careRecipientId: pending!.careRecipientId!,
+        type: effectiveType,
+        scheduledAt: new Date(`${pending!.scheduledDate}T${pending!.scheduledTime || "10:00"}:00`).toISOString(),
+        durationHours: pending!.durationHours,
+        amountPaise: effectiveAmount,
+      });
+      currentBookingId = booking.id;
+      setBookingId(booking.id);
+    }
 
-    const payment = await simulatePayment(booking.id, effectiveAmount);
+    const payment = await simulatePayment(currentBookingId, effectiveAmount);
     if (payment.status === "captured") {
-      await updateBookingStatus(booking.id, "confirmed");
+      await updateBookingStatus(currentBookingId, "confirmed");
+      if (effectiveType === "subscription") {
+        // A "subscription"-type booking needs a real subscriptions row
+        // behind it — created here, on payment success, and linked back.
+        const next = new Date(`${pending!.scheduledDate}T${pending!.scheduledTime || "10:00"}:00`);
+        next.setDate(next.getDate() + 7);
+        const subscription = await createSubscription({
+          familyId: family.id,
+          providerId,
+          frequency: pending!.frequency ?? "weekly",
+          amountPaise: effectiveAmount,
+          nextBillingDate: next.toISOString(),
+        });
+        await linkBookingToSubscription(currentBookingId, subscription.id);
+      }
       await addNotification(user!.id, "booking_confirmed", "Your booking is confirmed — chat is now unlocked.");
       clearPendingBooking();
-      router.push(`/book/${providerId}/confirmed?bookingId=${booking.id}`);
+      router.push(`/book/${providerId}/confirmed?bookingId=${currentBookingId}`);
     } else {
-      // Booking stays in `requested` status, recoverable — pendingBooking
-      // is untouched so retry has everything it needs (Guardrails).
+      // Booking stays in `requested` status and is REUSED on retry — the
+      // same row, never a duplicate (Guardrails: pendingBooking untouched).
       setState("failed");
     }
   }
@@ -90,22 +119,24 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
       <Card className="flex flex-col gap-2">
         <div className="flex justify-between text-sm">
           <span className="text-text-secondary">{provider.name}</span>
-          <span className="text-text-primary">{effectiveType === "subscription" ? "Weekly plan" : "One-off visit"}</span>
+          <span className="text-text-primary">{effectiveType === "subscription" ? `Weekly plan · ${visitsPerWeek}x/week` : "One-off visit"}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-text-secondary">Visit price</span>
-          <span className="text-text-primary">₹{(effectiveAmount / 100).toFixed(0)}</span>
+          <span className="text-text-secondary">{effectiveType === "subscription" ? "Weekly total" : "Visit price"}</span>
+          <span className="price text-text-primary">₹{(effectiveAmount / 100).toFixed(0)}</span>
         </div>
         <div className="mt-2 flex justify-between border-t border-border pt-2 text-base font-semibold">
           <span className="text-text-primary">Total</span>
-          <span className="text-text-primary">₹{(effectiveAmount / 100).toFixed(0)}</span>
+          <span className="price text-text-primary">₹{(effectiveAmount / 100).toFixed(0)}</span>
         </div>
       </Card>
 
-      {pending.type === "one_off" && !upgradedToWeekly && (
+      {/* Once a booking row exists (first pay attempt), the plan is locked —
+          switching mid-retry would charge a different amount than the row. */}
+      {pending.type === "one_off" && !upgradedToWeekly && !bookingId && (
         <Card className="flex items-center justify-between gap-3">
           <p className="text-sm text-text-primary">Switch to a weekly plan and save {WEEKLY_DISCOUNT_PCT}%?</p>
-          <button onClick={() => setUpgradedToWeekly(true)} className="min-h-tap shrink-0 rounded-md border border-accent px-3 text-xs font-semibold text-accent-text">
+          <button onClick={() => setUpgradedToWeekly(true)} className="min-h-tap shrink-0 rounded-full border border-accent px-4 text-xs font-semibold text-accent-text transition-colors hover:bg-accent-tint">
             Switch
           </button>
         </Card>
@@ -118,7 +149,7 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
       </p>
 
       {state === "idle" && (
-        <button onClick={handlePay} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white">
+        <button onClick={handlePay} className="price min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
           {`Pay ₹${(effectiveAmount / 100).toFixed(0)} & confirm booking`}
         </button>
       )}
@@ -134,11 +165,10 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
         <div className="flex flex-col items-center gap-3 py-4">
           <CircleAlert className="h-8 w-8 text-danger" />
           <p className="text-center text-sm text-text-primary">
-            Your payment didn&apos;t go through. No charge was made — please try again or use a different payment
-            method.
+            Your payment didn&apos;t go through. No charge was made — please try again.
           </p>
-          <button onClick={handlePay} className="min-h-tap w-full rounded-md bg-accent text-base font-semibold text-white">
-            Try a different payment method
+          <button onClick={handlePay} className="min-h-tap w-full rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
+            Try again
           </button>
         </div>
       )}

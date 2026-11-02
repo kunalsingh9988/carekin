@@ -46,13 +46,13 @@ export default function ReferralsPage() {
 
       {code && (
         <Card className="flex flex-col gap-3">
-          <p className="break-all rounded-md bg-bg-canvas px-3 py-2 text-sm text-text-secondary">{link}</p>
+          <p className="break-all rounded-md bg-surface-secondary px-3 py-2 text-sm text-text-secondary">{link}</p>
           <div className="flex gap-2">
             <a
               href={`https://wa.me/?text=${encodeURIComponent(`Found a great verified caregiver platform — use my link for ₹${bonus} off: ${link}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="min-h-tap flex flex-1 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white"
+              className="min-h-tap flex flex-1 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent-text"
             >
               Share on WhatsApp
             </a>

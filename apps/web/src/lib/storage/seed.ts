@@ -17,7 +17,7 @@ import type {
   VerificationReview,
 } from "./types";
 
-const SEED_FLAG_KEY = "seededV1";
+const SEED_FLAG_KEY = "seededV2";
 
 // Koramangala, Bengaluru — same pilot-neighborhood cluster used throughout
 // the earlier build prompts, kept for continuity.
@@ -348,6 +348,21 @@ export function seedIfNeeded(): void {
     },
   ];
   set("payouts", payouts);
+
+  // --- Payment for the requested booking — a `requested` booking is one
+  // the family has PAID but the provider hasn't accepted yet, so it needs
+  // a captured payment behind it (unpaid requests are checkout leftovers).
+  set("payments", [
+    {
+      id: "seed-payment-requested-1",
+      booking_id: "seed-booking-requested-1",
+      status: "captured",
+      amount_paise: 250000,
+      captured_at: iso(0, 9),
+      created_at: iso(0, 9),
+      updated_at: iso(0, 9),
+    },
+  ]);
 
   // --- Dispute for the disputed booking ---
   const disputes: Dispute[] = [

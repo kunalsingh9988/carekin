@@ -59,7 +59,7 @@ export default function FamilySettingsPage() {
 
       <Card className="flex flex-col gap-3">
         <p className="text-sm font-medium text-text-primary">Add an elder care recipient</p>
-        <p className="text-xs text-text-secondary">Adding a child requires guardian consent — do that from onboarding.</p>
+        <p className="text-xs text-text-secondary">Adding a child requires guardian consent — that happens during booking.</p>
         <TextField label="Name" value={newRecipientName} onChange={(e) => setNewRecipientName(e.target.value)} />
         <Button variant="secondary" onClick={handleAddElder} disabled={!newRecipientName} fullWidth>
           Add

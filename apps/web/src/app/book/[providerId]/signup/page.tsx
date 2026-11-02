@@ -1,14 +1,11 @@
 "use client";
 
 import { use, Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { loginAsRole } from "@/lib/auth";
-import { getPendingBooking } from "@/lib/storage/session";
+import { useRouter, useSearchParams, notFound } from "next/navigation";
+import { loginAsDemo, loginAsRole } from "@/lib/auth";
+import { getPendingBooking, setPendingReferral } from "@/lib/storage/session";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
-import { getFamilyProfile } from "@/lib/storage/repositories/families";
-import { findFamilyIdByReferralCode, recordReferral } from "@/lib/storage/repositories/referrals";
-import { get } from "@/lib/storage/client";
-import type { FamilyProfile, PendingBooking } from "@/lib/storage/types";
+import type { PendingBooking } from "@/lib/storage/types";
 import { PhoneNumber } from "@/lib/validation/schemas";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
@@ -23,7 +20,7 @@ function SignupForm({ providerId }: { providerId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [provider, setProvider] = useState<GuestSafeProvider | null>(null);
+  const [provider, setProvider] = useState<GuestSafeProvider | null | undefined>(undefined);
   const [pending, setPending] = useState<PendingBooking | null>(null);
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("+91");
@@ -32,17 +29,25 @@ function SignupForm({ providerId }: { providerId: string }) {
 
   useEffect(() => {
     getProviderPublic(providerId).then(setProvider);
-    const existing = getPendingBooking();
-    if (!existing || existing.providerId !== providerId) {
-      // Lost or missing guest selection — nothing to convert, send them
-      // back to choose again rather than showing a broken signup step.
-      router.replace(`/book/${providerId}`);
-      return;
-    }
-    setPending(existing);
-  }, [providerId, router]);
+    queueMicrotask(() => {
+      // Referral code — if this URL carries one (someone deep-linked
+      // straight here), stash it in session state so it survives to
+      // /profile, where a real family id exists to record it against.
+      const refCode = searchParams.get("ref");
+      if (refCode) setPendingReferral(refCode);
+      const existing = getPendingBooking();
+      if (!existing || existing.providerId !== providerId) {
+        // Lost or missing guest selection — nothing to convert, send them
+        // back to choose again rather than showing a broken signup step.
+        router.replace(`/book/${providerId}`);
+        return;
+      }
+      setPending(existing);
+    });
+  }, [providerId, router, searchParams]);
 
-  if (!provider || !pending) return null;
+  if (provider === null) notFound();
+  if (provider === undefined || !pending) return null;
 
   function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -63,21 +68,14 @@ function SignupForm({ providerId }: { providerId: string }) {
       return;
     }
 
-    const user = loginAsRole(phone, "family");
-
-    // Referral capture, if this visit arrived via a share link — one credit
-    // per new family, never for yourself.
-    const refCode = searchParams.get("ref");
-    if (refCode) {
-      const allFamilies = get<FamilyProfile[]>("families", []);
-      const referrerFamilyId = await findFamilyIdByReferralCode(allFamilies.map((f) => f.id), refCode);
-      const myFamily = await getFamilyProfile(user.id);
-      if (referrerFamilyId && myFamily) {
-        await recordReferral(referrerFamilyId, myFamily.id);
-      }
-    }
+    loginAsRole(phone, "family");
 
     // pendingBooking is intentionally left untouched — see file header.
+    router.push(`/book/${providerId}/profile`);
+  }
+
+  function handleSkip() {
+    loginAsDemo("family");
     router.push(`/book/${providerId}/profile`);
   }
 
@@ -102,18 +100,21 @@ function SignupForm({ providerId }: { providerId: string }) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+919876543210"
-              className="min-h-tap rounded-md border border-border bg-surface px-4 text-base text-text-primary"
+              className="min-h-tap rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent"
             />
           </label>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
-          <button type="submit" className="min-h-tap rounded-md bg-accent text-base font-semibold text-white">
+          <button type="submit" className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
             Send OTP
           </button>
           <p className="text-center text-xs text-text-secondary">
             Your number is only shared with {provider.name} once your booking is confirmed — never before.
           </p>
+          <button type="button" onClick={handleSkip} className="min-h-tap rounded-md text-sm font-medium text-accent-text transition-colors hover:text-accent">
+            Skip — continue as demo
+          </button>
         </form>
       ) : (
         <form onSubmit={handleVerify} className="flex flex-col gap-4">
@@ -131,13 +132,13 @@ function SignupForm({ providerId }: { providerId: string }) {
               maxLength={6}
               inputMode="numeric"
               placeholder="123456"
-              className="min-h-tap rounded-md border border-border bg-surface px-4 text-center text-lg tracking-widest text-text-primary"
+              className="min-h-tap rounded-md border border-border bg-surface px-4 text-center text-lg tracking-widest text-text-primary placeholder:text-text-secondary focus:border-accent"
             />
           </label>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
-          <button type="submit" disabled={otp.length !== 6} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white disabled:opacity-50">
+          <button type="submit" disabled={otp.length !== 6} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text disabled:opacity-50">
             Verify
           </button>
         </form>

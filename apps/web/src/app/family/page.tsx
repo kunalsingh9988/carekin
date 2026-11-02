@@ -44,7 +44,7 @@ export default function FamilyDashboardPage() {
         <Search className="h-10 w-10 text-text-secondary" strokeWidth={1.5} />
         <h1 className="text-xl font-semibold text-text-primary">Let&apos;s find you someone you trust.</h1>
         <p className="text-sm text-text-secondary">You haven&apos;t booked with CareKin yet — start with a search.</p>
-        <Link href="/search" className="min-h-tap flex items-center rounded-md bg-accent px-6 text-sm font-semibold text-white">
+        <Link href="/search" className="min-h-tap flex items-center rounded-md bg-accent px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-text">
           Search now
         </Link>
       </main>
@@ -57,7 +57,7 @@ export default function FamilyDashboardPage() {
 
       {nextBooking && provider ? (
         <Card className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Next visit</p>
+          <p className="text-xs font-semibold text-text-secondary">Next visit</p>
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-text-primary">{provider.name}</p>
@@ -65,15 +65,15 @@ export default function FamilyDashboardPage() {
             </div>
             <BookingStatusBadge status={nextBooking.status} />
           </div>
-          <Link href={`/family/bookings/${nextBooking.id}`} className="text-sm font-medium text-accent-text underline">
-            View booking
+          <Link href={`/family/bookings/${nextBooking.id}`} className="text-sm font-medium text-accent-text">
+            View booking →
           </Link>
         </Card>
       ) : (
         <Card className="flex items-center justify-between">
           <p className="text-sm text-text-secondary">No upcoming visits.</p>
-          <Link href="/search" className="text-sm font-medium text-accent-text underline">
-            Book again
+          <Link href="/search" className="text-sm font-medium text-accent-text">
+            Book again →
           </Link>
         </Card>
       )}

@@ -21,7 +21,13 @@ export function get<T>(key: string, fallback: T): T {
 
 export function set<T>(key: string, value: T): void {
   if (!isBrowser()) return;
-  window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+  try {
+    window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+  } catch (err) {
+    // QuotaExceededError or storage disabled (private mode) — a failed write
+    // must not crash the page; the read path already falls back gracefully.
+    console.warn(`[carekin] localStorage write failed for "${PREFIX + key}":`, err);
+  }
 }
 
 export function remove(key: string): void {

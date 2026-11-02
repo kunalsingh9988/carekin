@@ -1,12 +1,14 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
-import { getBooking, createBooking, updateBookingStatus } from "@/lib/storage/repositories/bookings";
+import { getBooking, createBooking, updateBookingStatus, linkBookingToSubscription } from "@/lib/storage/repositories/bookings";
+import { createSubscription } from "@/lib/storage/repositories/subscriptions";
 import { getProvider } from "@/lib/storage/repositories/providers";
-import { getCareRecipient } from "@/lib/storage/repositories/families";
+import { getCareRecipient, getFamilyProfile } from "@/lib/storage/repositories/families";
 import { simulatePayment } from "@/lib/storage/repositories/payments";
 import { addNotification } from "@/lib/storage/repositories/notifications";
 import type { Booking, CareRecipient, Provider } from "@/lib/storage/types";
@@ -22,22 +24,34 @@ export default function RebookPage({ params }: { params: Promise<{ id: string }>
   const user = useRequireRole("family");
   const router = useRouter();
 
-  const [original, setOriginal] = useState<Booking | null>(null);
+  const [original, setOriginal] = useState<Booking | null | undefined>(undefined);
   const [provider, setProvider] = useState<Provider | null>(null);
   const [recipient, setRecipient] = useState<CareRecipient | null>(null);
   const [state, setState] = useState<"idle" | "processing" | "failed">("idle");
+  const bookingIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
     getBooking(id).then(async (b) => {
-      setOriginal(b);
       if (b) {
+        // Ownership: this shortcut only works on YOUR past bookings.
+        const family = await getFamilyProfile(user.id);
+        if (!family || b.family_id !== family.id) {
+          router.replace("/family/bookings");
+          return;
+        }
+        setOriginal(b);
         getProvider(b.provider_id).then(setProvider);
         getCareRecipient(b.care_recipient_id).then(setRecipient);
+      } else {
+        setOriginal(null);
       }
     });
-  }, [id]);
+  }, [id, user, router]);
 
-  if (!user || !original || !provider || !recipient) return null;
+  if (!user || original === undefined) return null;
+  if (original === null) return null; // redirected above
+  if (!provider || !recipient) return null;
 
   function nextAvailableDate(): string {
     const d = new Date();
@@ -47,20 +61,39 @@ export default function RebookPage({ params }: { params: Promise<{ id: string }>
 
   async function handleConfirm() {
     setState("processing");
-    const booking = await createBooking({
-      familyId: original!.family_id,
-      providerId: original!.provider_id,
-      careRecipientId: original!.care_recipient_id,
-      type: original!.type,
-      scheduledAt: nextAvailableDate(),
-      durationHours: original!.duration_hours,
-      amountPaise: original!.amount_paise,
-    });
-    const payment = await simulatePayment(booking.id, booking.amount_paise);
+    // Create once, reuse on retry — a failed payment must never leave a
+    // trail of duplicate `requested` bookings.
+    if (!bookingIdRef.current) {
+      const booking = await createBooking({
+        familyId: original!.family_id,
+        providerId: original!.provider_id,
+        careRecipientId: original!.care_recipient_id,
+        type: original!.type,
+        scheduledAt: nextAvailableDate(),
+        durationHours: original!.duration_hours,
+        amountPaise: original!.amount_paise,
+        subscriptionId: original!.subscription_id,
+      });
+      bookingIdRef.current = booking.id;
+    }
+    const payment = await simulatePayment(bookingIdRef.current, original!.amount_paise);
     if (payment.status === "captured") {
-      await updateBookingStatus(booking.id, "confirmed");
+      const bookingId = bookingIdRef.current;
+      await updateBookingStatus(bookingId, "confirmed");
+      if (original!.type === "subscription" && !original!.subscription_id) {
+        const next = new Date();
+        next.setDate(next.getDate() + 7);
+        const sub = await createSubscription({
+          familyId: original!.family_id,
+          providerId: original!.provider_id,
+          frequency: "weekly",
+          amountPaise: original!.amount_paise,
+          nextBillingDate: next.toISOString(),
+        });
+        await linkBookingToSubscription(bookingId, sub.id);
+      }
       await addNotification(user!.id, "booking_confirmed", `Your booking with ${provider!.name} is confirmed.`);
-      router.push(`/family/bookings/${booking.id}`);
+      router.push(`/family/bookings/${bookingId}`);
     } else {
       setState("failed");
     }
@@ -78,7 +111,7 @@ export default function RebookPage({ params }: { params: Promise<{ id: string }>
         <Row label="Price" value={`₹${(original.amount_paise / 100).toFixed(0)}`} />
       </Card>
 
-      {state === "failed" && <p className="text-center text-sm text-danger">Payment didn&apos;t go through — try again.</p>}
+      {state === "failed" && <p className="text-center text-sm text-danger">Payment didn&apos;t go through — no charge was made, try again.</p>}
 
       {state === "processing" ? (
         <div className="flex justify-center py-2 text-text-secondary">
@@ -90,9 +123,9 @@ export default function RebookPage({ params }: { params: Promise<{ id: string }>
         </Button>
       )}
 
-      <a href={`/book/${provider.id}`} className="text-center text-sm text-text-secondary underline">
+      <Link href={`/book/${provider.id}`} className="text-center text-sm text-text-secondary underline">
         Change details first
-      </a>
+      </Link>
     </main>
   );
 }

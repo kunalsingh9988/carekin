@@ -1,36 +1,53 @@
 "use client";
 
-import { use, Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
-import { addChildRecipientWithConsent } from "@/lib/storage/repositories/families";
-import { setPendingBooking } from "@/lib/storage/session";
+import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRequireRole } from "@/lib/hooks/useRequireRole";
+import { addChildRecipientWithConsent, getFamilyProfileById } from "@/lib/storage/repositories/families";
+import { setPendingBooking, getPendingChildRecipient, clearPendingChildRecipient, type PendingChildRecipient } from "@/lib/storage/session";
 import { Card } from "@/components/ui/Card";
 
 // Guardian consent, minors only — Section 6.9: "Not a CRO page — no
 // persuasive design pressure." No urgency styling, no pre-ticked box, no
 // upsell nearby, by design (Guardrails). StepProgress and the booking
 // summary are deliberately NOT shown here either — this page stands alone.
-function ConsentForm({ providerId }: { providerId: string }) {
+export default function ConsentPage({ params }: { params: Promise<{ providerId: string }> }) {
+  const { providerId } = use(params);
   const router = useRouter();
-  const params = useSearchParams();
-  const user = getCurrentUser();
-  const familyId = params.get("familyId") ?? "";
-  const childName = params.get("name") ?? "this child";
-  const notes = params.get("notes") ?? "";
+  const user = useRequireRole("family");
 
+  const [pending, setPending] = useState<PendingChildRecipient | null | undefined>(undefined);
+  const [guardianName, setGuardianName] = useState("");
   const [checked, setChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  if (!user) return null;
+  useEffect(() => {
+    const value = getPendingChildRecipient();
+    Promise.resolve().then(() => setPending(value));
+    if (value) {
+      getFamilyProfileById(value.familyId).then((f) => setGuardianName(f?.name ?? ""));
+    }
+  }, []);
+
+  useEffect(() => {
+    // No pending child details means this page was reached directly or the
+    // funnel state was lost — restart the booking flow rather than consent
+    // to a blank record.
+    if (pending === null) router.replace(`/book/${providerId}/profile`);
+  }, [pending, providerId, router]);
+
+  if (!user || !pending) return null;
+  const childName = pending.name || "this child";
 
   async function handleContinue() {
+    if (!user || !pending) return;
     setSubmitting(true);
     const recipient = await addChildRecipientWithConsent(
-      familyId,
-      { name: childName, notes: notes || undefined },
-      { consentedBy: user!.id, method: "in_app_checkbox", consentedByName: user!.phone },
+      pending.familyId,
+      { name: pending.name, notes: pending.notes || undefined },
+      { consentedBy: user.id, method: "in_app_checkbox", consentedByName: guardianName || user.phone },
     );
+    clearPendingChildRecipient();
     setPendingBooking({ careRecipientId: recipient.id });
     router.push(`/book/${providerId}/pay`);
   }
@@ -57,20 +74,11 @@ function ConsentForm({ providerId }: { providerId: string }) {
         <button
           onClick={handleContinue}
           disabled={!checked || submitting}
-          className="min-h-tap rounded-md bg-accent text-base font-semibold text-white disabled:opacity-50"
+          className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text disabled:opacity-50"
         >
           Continue
         </button>
       </Card>
     </main>
-  );
-}
-
-export default function ConsentPage({ params }: { params: Promise<{ providerId: string }> }) {
-  const { providerId } = use(params);
-  return (
-    <Suspense>
-      <ConsentForm providerId={providerId} />
-    </Suspense>
   );
 }
