@@ -73,6 +73,14 @@ select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222'
 select pg_temp.assert(public.carekin_api('care.getCareContext',jsonb_build_array('{}'::jsonb,value->>'id'))->'visit'->>'arrival_pin' is null,'provider cannot read PIN') from ck_test where key='booking';
 select pg_temp.assert(public.carekin_api('care.careAction',jsonb_build_array('{}'::jsonb,value->>'id','checkin','wrong')) ? 'error','incorrect PIN rejected') from ck_test where key='booking';
 select public.carekin_api('care.careAction',jsonb_build_array('{}'::jsonb,value->>'id','checkin',(select value from ck_test where key='pin'))) from ck_test where key='booking';
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+select public.carekin_api('care.saveCareBrief',jsonb_build_array('{}'::jsonb,value->>'id',jsonb_build_object('contacts','[]'::jsonb,'share_with_provider',true,'needs','Synthetic private brief'))) from ck_test where key='booking';
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+select pg_temp.assert(public.carekin_api('care.getCareContext',jsonb_build_array('{}'::jsonb,value->>'id'))->'brief'->>'needs'='Synthetic private brief','active consented provider can read brief') from ck_test where key='booking';
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+select pg_temp.assert(not(public.carekin_api('care.reportSafetyConcern',jsonb_build_array('{}'::jsonb,value->>'id',jsonb_build_object('category','I feel unsafe / possible abuse','severity','urgent','narrative','Synthetic privacy test','interrupt',false))) ? 'audit'),'report response excludes internal audit') from ck_test where key='booking';
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+select pg_temp.assert(public.carekin_api('care.getCareContext',jsonb_build_array('{}'::jsonb,value->>'id'))->>'brief' is null and public.carekin_api('care.getCareContext',jsonb_build_array('{}'::jsonb,value->>'id'))->>'address' is null,'contact restriction removes active brief and address access') from ck_test where key='booking';
 select public.carekin_api('care.careAction',jsonb_build_array('{}'::jsonb,value->>'id','checkout','')) from ck_test where key='booking';
 do $$ begin
  perform public.carekin_api('care.careAction',jsonb_build_array('{}'::jsonb,(select value->>'id' from ck_test where key='booking'),'confirm_checkout','')); raise exception 'FAILED: provider self checkout confirmation';

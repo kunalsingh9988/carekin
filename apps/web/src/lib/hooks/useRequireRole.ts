@@ -6,12 +6,9 @@ import { backendEnabled } from "@/lib/backend/config";
 import { useRouter } from "next/navigation";
 import type { CurrentUser, UserRole } from "@/lib/storage/types";
 
-// Client-side route guard (no real auth/RLS in this prototype — Guardrails,
-// Section 2). No-login build: instead of redirecting, a missing or
-// wrong-role session falls through to the shared demo identity for that
-// role — every surface stays browsable, and the navbar's Demo chip keeps
-// the substitution honest. Returns null while the check is in flight so
-// pages don't flash content.
+// Backend mode refreshes authenticated identity and redirects wrong-role users.
+// Database authorization remains the security boundary; this guard is UX only.
+// Legacy role substitution is available only when backend mode is disabled.
 export function useRequireRole(role: UserRole): CurrentUser | null {
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);

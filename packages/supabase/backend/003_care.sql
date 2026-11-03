@@ -29,9 +29,9 @@ begin
   return jsonb_build_object('booking',to_jsonb(b),'visit',(to_jsonb(v)-'brief'-'pin_failures')||jsonb_build_object('arrival_pin',case when f.user_id=uid then v.arrival_pin end,'pin_required',v.arrival_pin is not null),
    'provider',jsonb_build_object('name',p.name,'type',p.type,'approved',p.verification_status='approved'),
    'familyName',split_part(f.name,' ',1),'recipientName',split_part(r.name,' ',1),'recipientType',r.type,
-   'address',case when f.user_id=uid or carekin.is_admin() or (not terminal and b.status in ('confirmed','in_progress') and now()>=b.scheduled_at-interval '2 hours' and now()<=b.ends_at+interval '2 hours') then f.address end,
-   'careNotes',case when f.user_id=uid or carekin.is_admin() or (active and consent and coalesce((v.brief->>'share_with_provider')::boolean,false)) then r.notes end,
-   'brief',case when f.user_id=uid or carekin.is_admin() or (active and consent and coalesce((v.brief->>'share_with_provider')::boolean,false)) then v.brief end,'myCases',result);
+   'address',case when f.user_id=uid or carekin.is_admin() or (not v.contact_restricted and not terminal and b.status in ('confirmed','in_progress') and now()>=b.scheduled_at-interval '2 hours' and now()<=b.ends_at+interval '2 hours') then f.address end,
+   'careNotes',case when f.user_id=uid or carekin.is_admin() or (not v.contact_restricted and active and consent and coalesce((v.brief->>'share_with_provider')::boolean,false)) then r.notes end,
+   'brief',case when f.user_id=uid or carekin.is_admin() or (not v.contact_restricted and active and consent and coalesce((v.brief->>'share_with_provider')::boolean,false)) then v.brief end,'myCases',result);
  elsif operation='care.saveCareBrief' then
   x:=args->2; perform carekin.require(f.user_id=uid,'Only the booking family can edit the brief.');
   perform carekin.require(jsonb_typeof(x)='object' and jsonb_typeof(x->'contacts')='array' and jsonb_array_length(x->'contacts')<=3 and length(coalesce(x->>'access',''))<=1000 and length(coalesce(x->>'medical',''))<=1000 and length(coalesce(x->>'needs',''))<=1000 and length(coalesce(x->>'present',''))<=1000,'Invalid brief.');
@@ -105,7 +105,7 @@ begin
   values(bid,uid,role_name,severity,x->>'category',trim(x->>'narrative'),jsonb_build_array(jsonb_build_object('at',now(),'actor',uid,'note','Case recorded. No emergency dispatch or staffed response is connected.')),
    jsonb_build_object('timeline',v.timeline,'messages',(select coalesce(jsonb_agg(to_jsonb(mm) order by created_at),'[]') from carekin.messages mm where booking_id=bid))) returning * into case_row;
   insert into carekin.notifications(user_id,type,message) select id,'verification_update','A safety case needs review. No emergency service was dispatched.' from carekin.accounts where role='admin';
-  return to_jsonb(case_row)-'evidence';
+  return to_jsonb(case_row)-'evidence'-'audit';
  end if;
  raise exception 'Unknown care operation';
 end;
