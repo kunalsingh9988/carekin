@@ -7,7 +7,7 @@ import { getPendingBooking, setPendingReferral } from "@/lib/storage/session";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
 import type { PendingBooking } from "@/lib/storage/types";
 import { PhoneNumber } from "@/lib/validation/schemas";
-import { StepProgress } from "@/components/ui/StepProgress";
+import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 
 type Step = "phone" | "otp";
@@ -80,8 +80,7 @@ function SignupForm({ providerId }: { providerId: string }) {
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
-      <StepProgress step={2} total={4} label="Sign up" />
+    <OnboardingFrame steps={["Choose your visit", "Your account", "Family details", "Confirm and pay"]} step={2} title="Your family’s next good day starts here." description="Your provider and plan are saved. Create your account to continue with the visit you’ve chosen." image={provider.type === "babysitter" ? "babysitting-storytime" : "hero-family-care"}>
       <BookingSummaryCard providerName={provider.name} pending={pending} />
 
       {step === "phone" ? (
@@ -143,7 +142,7 @@ function SignupForm({ providerId }: { providerId: string }) {
           </button>
         </form>
       )}
-    </main>
+    </OnboardingFrame>
   );
 }
 

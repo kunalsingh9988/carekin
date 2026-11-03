@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HandCoins, ShieldCheck } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { getMyProvider } from "@/lib/storage/repositories/providers";
+import { getMyProvider, getDocuments } from "@/lib/storage/repositories/providers";
 import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { Card } from "@/components/ui/Card";
+import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 
 // Public landing, account required to submit (Section 5.2) — pre-qualifies
 // applicants rather than maximizing raw signup volume.
@@ -17,7 +18,11 @@ export default function ProviderApplyPage() {
   useEffect(() => {
     const user = getCurrentUser();
     if (user?.role === "provider") {
-      getMyProvider(user.id).then((p) => router.replace(p ? "/provider/verification-status" : "/provider/onboarding"));
+      getMyProvider(user.id).then(async (p) => {
+        if (!p) { router.replace("/provider/onboarding"); return; }
+        const documents = await getDocuments(p.id);
+        router.replace(documents.some((doc) => doc.type === "id_proof") && documents.some((doc) => doc.type === "address_proof") ? "/provider/verification-status" : "/provider/onboarding/documents");
+      });
     }
   }, [router]);
 
@@ -31,7 +36,7 @@ export default function ProviderApplyPage() {
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-1 flex-col justify-center gap-6 px-6 py-16">
+    <OnboardingFrame steps={["Meet CareKin", "Your profile", "Documents", "Application review"]} step={1} title="Care is your calling. Let’s take the next step." description="A guided application for elder caregivers and babysitters, with a human review before your profile goes live." image="caregiver-arrival">
       <div className="text-center">
         <h1 className="text-2xl font-semibold text-text-primary">
           Turn your caregiving experience into steady, dignified work.
@@ -60,6 +65,6 @@ export default function ProviderApplyPage() {
           Caregivers on CareKin typically earn ₹500–₹800 per visit, paid directly to your account.
         </p>
       </Card>
-    </main>
+    </OnboardingFrame>
   );
 }

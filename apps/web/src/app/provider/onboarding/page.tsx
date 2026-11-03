@@ -1,24 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
-import { createProviderProfile, getMyProvider } from "@/lib/storage/repositories/providers";
+import { createProviderProfile, getMyProvider, getDocuments } from "@/lib/storage/repositories/providers";
 import { ProviderProfileSchema, type ProviderProfileFormValues } from "@/lib/validation/schemas";
 import { Button } from "@/components/ui/Button";
-import { StepProgress } from "@/components/ui/StepProgress";
+import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { TextField, TextAreaField, SelectField } from "@/components/ui/FormField";
 
 export default function ProviderOnboardingPage() {
   const user = useRequireRole("provider");
   const router = useRouter();
   const { coords, loading: locating, usedFallback, fetchLocation } = useCurrentLocation();
+  const [usePilotArea, setUsePilotArea] = useState(false);
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     formState: { errors, isSubmitting },
@@ -26,14 +28,17 @@ export default function ProviderOnboardingPage() {
     resolver: zodResolver(ProviderProfileSchema),
     defaultValues: { type: "caregiver", serviceRadiusKm: 5, phone: user?.phone ?? "+91" },
   });
+  const careType = useWatch({ control, name: "type" });
 
   useEffect(() => {
     if (!user) return;
     // Pre-fill the phone once the session resolves — defaultValues is
     // captured on first render, before useRequireRole finishes.
     setValue("phone", user.phone);
-    getMyProvider(user.id).then((p) => {
-      if (p) router.replace("/provider/verification-status");
+    getMyProvider(user.id).then(async (p) => {
+      if (!p) return;
+      const documents = await getDocuments(p.id);
+      router.replace(documents.some((doc) => doc.type === "id_proof") && documents.some((doc) => doc.type === "address_proof") ? "/provider/verification-status" : "/provider/onboarding/documents");
     });
   }, [user, router, setValue]);
 
@@ -47,14 +52,14 @@ export default function ProviderOnboardingPage() {
   if (!user) return null;
 
   async function onSubmit(values: ProviderProfileFormValues) {
-    if (!coords) return;
-    await createProviderProfile(user!.id, { ...values, latitude: coords.latitude, longitude: coords.longitude });
+    if (!coords && !usePilotArea) return;
+    const at = coords ?? { latitude: 12.9352, longitude: 77.6146 };
+    await createProviderProfile(user!.id, { ...values, latitude: at.latitude, longitude: at.longitude });
     router.push("/provider/onboarding/documents");
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 py-12">
-      <StepProgress step={1} total={2} label="Provider onboarding" />
+    <OnboardingFrame steps={["Your care profile", "Documents and identity", "Application status"]} step={1} title="Bring your care. Build meaningful connections." description="Introduce yourself to families looking for thoughtful, dependable support. Your profile stays private until the review is complete." image={careType === "babysitter" ? "babysitting-storytime" : "caregiver-arrival"}>
       <div>
         <h1 className="text-2xl font-bold leading-2xl text-text-primary">Set up your provider profile</h1>
         <p className="mt-1 text-sm leading-sm text-text-secondary">You won&apos;t be visible to families until our team verifies you.</p>
@@ -75,10 +80,12 @@ export default function ProviderOnboardingPage() {
           {coords ? (usedFallback ? "Using approximate location" : "Location saved") : locating ? "Locating…" : "Use my current location"}
         </Button>
 
-        <Button type="submit" disabled={!coords || isSubmitting} fullWidth>
+        <button type="button" onClick={() => { setUsePilotArea(true); setValue("latitude", 12.9352); setValue("longitude", 77.6146); }} className="min-h-tap rounded-md bg-accent-tint px-4 text-sm font-medium text-accent-text">{usePilotArea ? "Koramangala demo area selected" : "Use Koramangala demo area instead"}</button>
+
+        <Button type="submit" disabled={(!coords && !usePilotArea) || isSubmitting} fullWidth>
           Continue to documents
         </Button>
       </form>
-    </main>
+    </OnboardingFrame>
   );
 }

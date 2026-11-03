@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { get, set } from "@/lib/storage/client";
 import { HeartHandshake, ShieldCheck } from "lucide-react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
 import { getFamilyProfile, saveFamilyProfile, addElderRecipient, addChildRecipientWithConsent } from "@/lib/storage/repositories/families";
 import type { CareRecipientType, FamilyProfile } from "@/lib/storage/types";
-import { StepProgress } from "@/components/ui/StepProgress";
+import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TextField, TextAreaField } from "@/components/ui/FormField";
@@ -31,6 +32,7 @@ export default function FamilyOnboardingPage() {
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [usePilotArea, setUsePilotArea] = useState(false);
   const [family, setFamily] = useState<FamilyProfile | null>(null);
 
   const [recipientType, setRecipientType] = useState<CareRecipientType>("elder");
@@ -46,8 +48,13 @@ export default function FamilyOnboardingPage() {
     getFamilyProfile(user.id).then((f) => {
       setExisting(f);
       if (f) {
-        // Already onboarded — profile exists, nothing to collect here.
-        router.replace("/family");
+        if (get(`familyOnboarding:${user.id}`, false)) {
+          setExisting(null);
+          setFamily(f);
+          setName(f.name);
+          setAddress(f.address);
+          setStep("recipient");
+        } else router.replace("/family");
       }
       setChecked(true);
     });
@@ -63,22 +70,27 @@ export default function FamilyOnboardingPage() {
       setError("Add your name and address to continue.");
       return;
     }
-    if (!coords) {
+    if (!coords && !usePilotArea) {
       setError("Tap \"Use my current location\" so we can show caregivers near you.");
       return;
     }
     setSubmitting(true);
-    const f = await saveFamilyProfile(user!.id, { name: name.trim(), address: address.trim(), latitude: coords.latitude, longitude: coords.longitude });
-    setFamily(f);
-    setSubmitting(false);
-    setStep("recipient");
+    try {
+      const at = coords ?? { latitude: 12.9352, longitude: 77.6146 };
+      const f = await saveFamilyProfile(user!.id, { name: name.trim(), address: address.trim(), latitude: at.latitude, longitude: at.longitude });
+      set(`familyOnboarding:${user!.id}`, true);
+      setFamily(f);
+      setStep("recipient");
+    } catch { setError("We couldn’t save your profile. Please try again."); }
+    finally { setSubmitting(false); }
   }
 
   async function handleRecipient(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!family || !recipientName.trim()) return;
+    if (!family || !recipientName.trim() || submitting || (recipientType === "child" && !consentChecked)) return;
     setSubmitting(true);
+    try {
     if (recipientType === "elder") {
       await addElderRecipient(family.id, { name: recipientName.trim(), notes: recipientNotes.trim() || undefined });
     } else {
@@ -87,13 +99,14 @@ export default function FamilyOnboardingPage() {
       await addChildRecipientWithConsent(family.id, { name: recipientName.trim(), notes: recipientNotes.trim() || undefined }, { consentedBy: user!.id, consentedByName: name.trim(), method: "in_app_checkbox" });
     }
     setRecipientAdded(true);
-    setSubmitting(false);
+    set(`familyOnboarding:${user!.id}`, false);
     setStep("done");
+    } catch { setError("We couldn’t save these details. Please try again."); }
+    finally { setSubmitting(false); }
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 py-12">
-      <StepProgress step={step === "about" ? 1 : step === "recipient" ? 2 : 3} total={3} label="Set up your family account" />
+    <OnboardingFrame steps={["Your family profile", "Who needs care", "Ready for your first visit"]} step={step === "about" ? 1 : step === "recipient" ? 2 : 3} title={step === "done" ? "A little help. A lot more peace of mind." : "Good care begins with knowing your family."} description="A few thoughtful details help you find support that fits the people, places and routines that matter to you." image={step === "done" ? "family-peace" : recipientType === "child" && step === "recipient" ? "babysitting-storytime" : "hero-family-care"}>
 
       {step === "about" && (
         <form onSubmit={handleAbout} className="flex flex-col gap-4">
@@ -110,6 +123,8 @@ export default function FamilyOnboardingPage() {
           <Button type="button" variant="secondary" onClick={fetchLocation} disabled={locating}>
             {coords ? (usedFallback ? "Using approximate location" : "Location saved") : locating ? "Locating…" : "Use my current location"}
           </Button>
+
+          <button type="button" onClick={() => setUsePilotArea(true)} className="min-h-tap rounded-md bg-accent-tint px-4 text-sm font-medium text-accent-text">{usePilotArea ? "Koramangala demo area selected" : "Use Koramangala demo area instead"}</button>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
@@ -132,6 +147,7 @@ export default function FamilyOnboardingPage() {
                 key={t}
                 type="button"
                 onClick={() => setRecipientType(t)}
+                aria-pressed={recipientType === t}
                 className={`min-h-tap flex-1 rounded-full border px-3 text-sm font-medium transition-colors ${recipientType === t ? "border-accent bg-accent-tint text-accent-text" : "border-border text-text-secondary"}`}
               >
                 {t === "elder" ? "A parent or elder" : "A child"}
@@ -167,7 +183,7 @@ export default function FamilyOnboardingPage() {
           <Button type="submit" disabled={!recipientName.trim() || (recipientType === "child" && !consentChecked) || submitting} fullWidth>
             {recipientType === "elder" ? "Add and finish" : "Consent and finish"}
           </Button>
-          <button type="button" onClick={() => setStep("done")} className="min-h-tap rounded-md text-sm font-medium text-text-secondary">
+          <button type="button" disabled={submitting} onClick={() => { set(`familyOnboarding:${user.id}`, false); setStep("done"); }} className="min-h-tap rounded-md text-sm font-medium text-text-secondary">
             Skip — I&apos;ll add them when I book
           </button>
         </form>
@@ -203,6 +219,6 @@ export default function FamilyOnboardingPage() {
           </Link>
         </div>
       )}
-    </main>
+    </OnboardingFrame>
   );
 }

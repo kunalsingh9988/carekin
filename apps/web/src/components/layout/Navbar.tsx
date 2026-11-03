@@ -16,6 +16,7 @@ const PUBLIC_LINKS = [
   { href: "/how-it-works", label: "How it works" },
   { href: "/pricing", label: "Pricing" },
   { href: "/cities", label: "Cities" },
+  { href: "/get-started", label: "Get started" },
 ];
 
 const ROLE_LINKS: Record<CurrentUser["role"], { href: string; label: string }[]> = {
@@ -54,7 +55,7 @@ export function Navbar() {
     router.refresh();
   }
 
-  const links = !user ? PUBLIC_LINKS : user.role === "family" ? [...PUBLIC_LINKS, ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
+  const links = !user ? PUBLIC_LINKS : user.role === "family" ? [PUBLIC_LINKS[0], ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/80 bg-surface/95 px-6 py-3 backdrop-blur">

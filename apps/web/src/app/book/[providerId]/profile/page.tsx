@@ -10,7 +10,7 @@ import { setPendingBooking, getPendingBooking, getPendingReferral, clearPendingR
 import { findFamilyIdByReferralCode, recordReferral } from "@/lib/storage/repositories/referrals";
 import { get } from "@/lib/storage/client";
 import type { CareRecipient, CareRecipientType, FamilyProfile, PendingBooking } from "@/lib/storage/types";
-import { StepProgress } from "@/components/ui/StepProgress";
+import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { Button } from "@/components/ui/Button";
 import { TextField, TextAreaField } from "@/components/ui/FormField";
@@ -112,8 +112,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
-      <StepProgress step={3} total={4} label="Your details" />
+    <OnboardingFrame steps={["Choose your visit", "Your account", "Family details", "Confirm and pay"]} step={3} title="Care that knows the little things." description="Share the practical details that help a care professional understand your family’s day." image={recipientType === "child" ? "babysitting-storytime" : "elder-care-checkin"}>
       {pending && <BookingSummaryCard providerName={provider.name} pending={pending} />}
 
       <h1 className="text-xl font-semibold text-text-primary">Tell us who {provider.name} will be caring for.</h1>
@@ -162,6 +161,6 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
           Continue
         </Button>
       </form>
-    </main>
+    </OnboardingFrame>
   );
 }

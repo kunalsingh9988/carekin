@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Upload } from "lucide-react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
-import { getMyProvider, submitDocuments } from "@/lib/storage/repositories/providers";
+import { getMyProvider, getDocuments, submitDocuments } from "@/lib/storage/repositories/providers";
 import type { DocumentType, Provider } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { StepProgress } from "@/components/ui/StepProgress";
+import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 
 const REQUIRED: { type: DocumentType; label: string }[] = [
   { type: "id_proof", label: "Government ID (Aadhaar, PAN, etc.)" },
@@ -23,6 +23,7 @@ export default function DocumentUploadPage() {
   const user = useRequireRole("provider");
   const router = useRouter();
   const [provider, setProvider] = useState<Provider | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [uploaded, setUploaded] = useState<Record<DocumentType, string | null>>({
     id_proof: null,
     address_proof: null,
@@ -31,8 +32,13 @@ export default function DocumentUploadPage() {
 
   useEffect(() => {
     if (!user) return;
-    getMyProvider(user.id).then(setProvider);
-  }, [user]);
+    getMyProvider(user.id).then(async (profile) => {
+      if (!profile) { router.replace("/provider/onboarding"); return; }
+      setProvider(profile);
+      const documents = await getDocuments(profile.id);
+      setUploaded((previous) => ({ ...previous, ...Object.fromEntries(documents.map((document) => [document.type, document.filename])) }));
+    });
+  }, [user, router]);
 
   if (!user) return null;
 
@@ -41,7 +47,8 @@ export default function DocumentUploadPage() {
   }
 
   async function handleFinish() {
-    if (!provider) return;
+    if (!provider || submitting || !uploaded.id_proof || !uploaded.address_proof) return;
+    setSubmitting(true);
     const docs = (Object.entries(uploaded) as [DocumentType, string | null][])
       .filter(([, filename]) => filename)
       .map(([type, filename]) => ({ type, filename: filename! }));
@@ -52,8 +59,7 @@ export default function DocumentUploadPage() {
   const requiredDone = uploaded.id_proof && uploaded.address_proof;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 py-12">
-      <StepProgress step={2} total={2} label="Provider onboarding" />
+    <OnboardingFrame steps={["Your care profile", "Documents and identity", "Application status"]} step={2} title="Trust starts with the small details." description="Complete your application with identity and address documents. Our review process keeps families and care professionals connected with confidence." image={provider?.type === "babysitter" ? "babysitting-storytime" : "elder-care-checkin"}>
       <div>
         <h1 className="text-2xl font-bold leading-2xl text-text-primary">Upload your documents</h1>
         <p className="mt-1 text-sm leading-sm text-text-secondary">Our team reviews these before you go live.</p>
@@ -80,9 +86,9 @@ export default function DocumentUploadPage() {
         ))}
       </div>
 
-      <Button onClick={handleFinish} disabled={!requiredDone} fullWidth>
-        Submit for review
+      <Button onClick={handleFinish} disabled={!requiredDone || !provider || submitting} fullWidth>
+        {submitting ? "Submitting…" : "Submit for review"}
       </Button>
-    </main>
+    </OnboardingFrame>
   );
 }

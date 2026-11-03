@@ -52,6 +52,21 @@ The one rule that is **not** simulated: verification gating. Only
 data layer, not hidden by the UI — mirroring the real backend's RLS
 policy, guest or authenticated.
 
+## Guided account setup
+
+`/get-started` introduces the family, care-provider, and demo-admin journeys.
+Families set up a private profile, optionally add an elder or child recipient
+(guardian consent is required for children), then continue to care discovery.
+Providers choose elder care or babysitting, create a profile, submit simulated
+documents, and track application review. Admins get a three-step operations
+tour with a demo acknowledgement before opening the dashboard. Returning
+users resume incomplete family/provider setup or continue to their workspace.
+The existing booking signup and profile steps retain the selected visit.
+
+Shared responsive photo panels use original generated lifestyle imagery,
+labelled as illustrative scenes rather than provider portraits. Accounts,
+document submissions, and admin access remain browser-local simulations.
+
 ## Deviations worth knowing about
 
 - **Login is a popup, not a page**, for *returning* users — `/login` from

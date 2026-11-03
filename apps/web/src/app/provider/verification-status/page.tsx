@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getMyProvider, getVerificationStatus } from "@/lib/storage/repositories/providers";
 import type { Provider, VerificationReview } from "@/lib/storage/types";
@@ -27,12 +29,13 @@ export default function VerificationStatusPage() {
     return (
       <main className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center px-6 text-center">
         <p className="text-text-secondary">You haven&apos;t set up your provider profile yet.</p>
+        <Link href="/provider/onboarding" className="mt-4 text-accent-text">Start your care profile</Link>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
+    <OnboardingFrame steps={["Your care profile", "Documents and identity", "Application status"]} step={3} title={provider.verification_status === "approved" ? "Ready to make a difference." : "Your next chapter in care starts here."} description="Your application status and review history stay here, so you always know where things stand." image={provider.type === "babysitter" ? "babysitting-storytime" : "caregiver-arrival"}>
       <div>
         <h1 className="text-2xl font-semibold text-text-primary">Verification status</h1>
         <div className="mt-1">
@@ -59,6 +62,8 @@ export default function VerificationStatusPage() {
           Our team is reviewing your documents and background check. This usually takes a few days.
         </p>
       )}
-    </main>
+      <Link href="/provider" className="flex min-h-tap items-center justify-center rounded-md bg-accent px-5 text-sm font-semibold text-white">Go to my dashboard</Link>
+      {provider.verification_status === "pending" && <Link href="/provider/onboarding/documents" className="text-center text-sm font-semibold text-accent-text">Review application documents</Link>}
+    </OnboardingFrame>
   );
 }

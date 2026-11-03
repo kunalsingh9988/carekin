@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { loginAsDemo, loginAsRole } from "@/lib/auth";
-import { getMyProvider } from "@/lib/storage/repositories/providers";
+import { getMyProvider, getDocuments } from "@/lib/storage/repositories/providers";
+import { get } from "@/lib/storage/client";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
 import { PhoneNumber, UserRole, type UserRoleValue } from "@/lib/validation/schemas";
 import { useAuthModal } from "./AuthModalProvider";
@@ -16,6 +19,7 @@ type Step = "phone" | "otp";
 export function AuthModal() {
   const { isOpen, close, defaultRole } = useAuthModal();
   const router = useRouter();
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const [step, setStep] = useState<Step>("phone");
   const [role, setRole] = useState<UserRoleValue>(defaultRole);
@@ -29,11 +33,20 @@ export function AuthModal() {
 
   useEffect(() => {
     if (!isOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    dialogRef.current?.querySelector<HTMLElement>("input, button")?.focus();
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") handleCancel();
+      if (e.key === "Tab") {
+        const controls = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href], select') ?? []);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }
     }
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => { window.removeEventListener("keydown", onKeyDown); previous?.focus(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
@@ -90,28 +103,33 @@ export function AuthModal() {
 
   async function routeAfterLogin(user: { id: string; role: UserRoleValue }) {
     if (user.role === "admin") {
-      router.push("/admin/verification-queue");
+      router.push(get(`adminOnboarding:${user.id}`, false) ? "/admin" : "/admin/onboarding");
     } else if (user.role === "provider") {
       const provider = await getMyProvider(user.id);
-      router.push(provider ? "/provider/verification-status" : "/provider/onboarding");
+      const documents = provider ? await getDocuments(provider.id) : [];
+      router.push(!provider ? "/provider/onboarding" : documents.some((doc) => doc.type === "id_proof") && documents.some((doc) => doc.type === "address_proof") ? "/provider/verification-status" : "/provider/onboarding/documents");
     } else {
       // New family → the onboarding flow builds their profile + first care
       // recipient; a returning family goes straight to the dashboard.
       const family = await getFamilyProfile(user.id);
-      router.push(family ? "/family" : "/family/onboarding");
+      router.push(family && !get(`familyOnboarding:${user.id}`, false) ? "/family" : "/family/onboarding");
     }
     router.refresh();
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={handleCancel} role="presentation">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4" onClick={handleCancel} role="presentation">
       <div
-        className="w-full max-w-sm rounded-lg border border-border bg-surface p-6"
+        className="relative my-auto grid max-h-[90dvh] w-full max-w-3xl overflow-y-auto rounded-lg border border-border bg-surface md:grid-cols-[0.85fr_1.15fr]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        ref={dialogRef}
         aria-modal="true"
         aria-label="Log in or sign up"
       >
+        <button aria-label="Close sign in" onClick={handleCancel} className="absolute right-3 top-3 z-10 flex min-h-tap min-w-tap items-center justify-center rounded-full bg-surface text-text-primary"><X className="h-5 w-5" /></button>
+        <div className="relative h-36 md:h-auto"><Image src={`/images/carekin/${role === "provider" ? "caregiver-arrival" : role === "admin" ? "elder-care-checkin" : "family-peace"}.webp`} alt="Illustrative scene of care at home" fill sizes="(max-width: 767px) 100vw, 340px" className={`object-cover ${role === "provider" ? "object-top" : ""}`} /><span className="absolute bottom-3 left-3 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative care scene</span></div>
+        <div className="p-6 sm:p-8 md:pt-16">
         {step === "phone" ? (
           <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
             <h2 className="font-display-latin text-lg font-semibold text-text-primary">Log in / Sign up</h2>
@@ -178,6 +196,7 @@ export function AuthModal() {
             </div>
           </form>
         )}
+        </div>
       </div>
     </div>
   );
@@ -188,6 +207,7 @@ function RoleButton({ label, active, onClick }: { label: string; active: boolean
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={`min-h-tap flex-1 rounded-full border px-2 text-xs font-medium ${active ? "border-accent bg-accent-tint text-accent-text" : "border-border text-text-secondary"}`}
     >
       {label}
