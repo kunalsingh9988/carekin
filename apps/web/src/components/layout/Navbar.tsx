@@ -10,6 +10,7 @@ import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { LanguageToggle } from "./LanguageToggle";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 // /search is public (Section 5.1) — always shown, not gated behind login.
 const PUBLIC_LINKS = [
@@ -66,11 +67,11 @@ export function Navbar() {
   return (
     <header className="site-header sticky top-0 z-30 border-b border-border/80 bg-surface/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="text-lg font-bold tracking-[-0.03em] text-text-primary">
-            Care<span className="text-accent-text">Kin</span>
+        <div className="flex min-w-0 items-center gap-6">
+          <Link href="/" aria-label="CareKin home" className="inline-flex min-h-tap shrink-0 items-center">
+            <BrandLogo priority />
           </Link>
-          <nav className="hidden items-center gap-5 xl:flex">
+          <nav className="hidden items-center gap-4 xl:flex">
             {links.map((link) => (
               <Link key={link.href} href={link.href} className="text-sm font-medium text-text-secondary">
                 {link.label}
@@ -79,7 +80,7 @@ export function Navbar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <ThemeToggle />
           <div className="hidden sm:block"><LanguageToggle /></div>
           {user ? (
@@ -95,7 +96,7 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <button onClick={() => open()} className="min-h-tap rounded-lg border border-border px-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-secondary sm:px-4">
+            <button onClick={() => open()} className="min-h-tap shrink-0 whitespace-nowrap rounded-lg border border-border px-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-secondary sm:px-4">
               Log in
             </button>
           )}

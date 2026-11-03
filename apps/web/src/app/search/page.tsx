@@ -17,7 +17,8 @@ import { VerificationChip } from "@/components/verification/VerificationChip";
 import { ProviderAvatar } from "@/components/ui/ProviderAvatar";
 
 const TYPE_LABEL: Record<ProviderType, string> = { caregiver: "caregiver", babysitter: "babysitter" };
-const CARE_IMAGES = ["elder-care-checkin", "caregiver-arrival", "hero-family-care"];
+const CARE_IMAGES = ["elder-care-checkin", "caregiver-arrival", "hero-family-care", "caregiver-walk"];
+const CHILDCARE_IMAGES = ["babysitting-storytime", "babysitting-playtime"];
 
 // Public, guest-accessible (Section 5.2) — no login wall before a first-time
 // visitor sees real, trustworthy content. listApprovedProviders() already
@@ -125,11 +126,13 @@ function SearchResults() {
         {list.map((p) => {
           const price = oneOffVisitPricePaise();
           const weeklyPerVisit = Math.round(weeklyPlanPricePaise() / 3);
-          const scene = p.type === "babysitter" ? "babysitting-storytime" : CARE_IMAGES[Array.from(p.id).reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % CARE_IMAGES.length];
+          const scenes = p.type === "babysitter" ? CHILDCARE_IMAGES : CARE_IMAGES;
+          const sceneIndex = Number(p.id.match(/\d+$/)?.[0] ?? Array.from(p.id).reduce((sum, letter) => sum + letter.charCodeAt(0), 0));
+          const scene = scenes[sceneIndex % scenes.length];
           return (
             <Link key={p.id} href={`/providers/${p.id}`} className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-accent" aria-label={`View ${p.name}'s ${label} profile`}>
                 <div className="relative aspect-[16/10] overflow-hidden bg-surface-secondary">
-                  <Image src={`/images/carekin/${scene}.webp`} alt={p.type === "babysitter" ? "Illustrative childcare scene: reading together at home" : "Illustrative elder care scene: everyday support at home"} fill sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw" className={`object-cover ${scene === "caregiver-arrival" ? "object-top" : "object-center"}`} />
+                  <Image src={`/images/carekin/brand-v2/${scene}.webp`} alt={p.type === "babysitter" ? "Illustrative babysitter in a CareKin T-shirt caring for a child" : "Illustrative caregiver in a CareKin T-shirt supporting an elder"} fill sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw" className={`object-cover ${scene === "caregiver-arrival" ? "object-top" : "object-center"}`} />
                   <span className="absolute left-3 top-3 rounded-full bg-surface px-3 py-1 text-xs font-semibold text-text-primary">{p.type === "caregiver" ? "Elder care" : "Babysitting"}</span>
                   <span className="absolute bottom-3 right-3 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative care scene</span>
                 </div>

@@ -78,6 +78,9 @@ body {
 :root { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
+/* The same transparent lockup reverses cleanly on dark surfaces. */
+:root[data-theme="dark"] .brand-logo { filter: brightness(0) invert(1); }
+
 /* Field defaults must never inherit a light-on-dark label color onto a
  * light native control. Utilities can still opt into transparent fields. */
 @layer base {

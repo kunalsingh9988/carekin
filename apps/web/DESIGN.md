@@ -59,6 +59,15 @@ documented stand-in).
 
 ## Components
 
+- Brand lockup: CareKin's violet embrace/CK mark and wordmark, shared through
+  `BrandLogo` in navigation, footer, authentication and onboarding. Transparent
+  master artwork reverses to white in dark mode. The standalone mark supplies
+  browser and home-screen icons. See `docs/brand-refresh.md` for assets/prompts.
+- Photography: the versioned seven-scene `images/carekin/brand-v2` library uses
+  violet CareKin T-shirts for every depicted care professional. All scenes are
+  AI-generated and illustrative, not provider identity evidence; initials
+  avatars remain the stand-in for missing actual provider portraits.
+
 - Radius: buttons **10px**, cards **14px**, chips **99px**; 8px grid.
 - Service/provider card: 4:3 image well on Mist, name, ★ rating in
   Rating green, price + struck original together.

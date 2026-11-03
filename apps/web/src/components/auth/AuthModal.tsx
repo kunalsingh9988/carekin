@@ -10,6 +10,7 @@ import { get } from "@/lib/storage/client";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
 import { PhoneNumber, UserRole, type UserRoleValue } from "@/lib/validation/schemas";
 import { useAuthModal } from "./AuthModalProvider";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 type Step = "phone" | "otp";
 
@@ -128,8 +129,9 @@ export function AuthModal() {
         aria-label="Log in or sign up"
       >
         <button aria-label="Close sign in" onClick={handleCancel} className="absolute right-3 top-3 z-10 flex min-h-tap min-w-tap items-center justify-center rounded-full bg-surface text-text-primary"><X className="h-5 w-5" /></button>
-        <div className="relative h-36 md:h-auto"><Image src={`/images/carekin/${role === "provider" ? "caregiver-arrival" : role === "admin" ? "elder-care-checkin" : "family-peace"}.webp`} alt="Illustrative scene of care at home" fill sizes="(max-width: 767px) 100vw, 340px" className={`object-cover ${role === "provider" ? "object-top" : ""}`} /><span className="absolute bottom-3 left-3 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative care scene</span></div>
+        <div className="relative h-36 md:h-auto"><Image src={`/images/carekin/brand-v2/${role === "provider" ? "caregiver-arrival" : role === "admin" ? "elder-care-checkin" : "family-peace"}.webp`} alt="Illustrative scene of care at home" fill sizes="(max-width: 767px) 100vw, 340px" className="object-cover object-[right_top]" /><span className="absolute bottom-3 left-3 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative care scene</span></div>
         <div className="p-6 sm:p-8 md:pt-16">
+        <div className="mb-5"><BrandLogo /></div>
         {step === "phone" ? (
           <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
             <h2 className="font-display-latin text-lg font-semibold text-text-primary">Log in / Sign up</h2>

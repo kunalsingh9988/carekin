@@ -36,7 +36,7 @@ export default function ProviderProfilePage({ params }: { params: Promise<{ id: 
   const childcare = provider.type === "babysitter";
   const photos = childcare ? [
     { file: "babysitting-storytime", alt: "A sitter and child enjoying story time at home" },
-    { file: "hero-family-care", alt: "A family spending time together at home" },
+    { file: "babysitting-playtime", alt: "A CareKin-branded sitter and child building with wooden blocks" },
     { file: "family-peace", alt: "A father and son sharing a quiet moment" },
   ] : [
     { file: "elder-care-checkin", alt: "A caregiver helping an elder with his daily routine" },
@@ -49,11 +49,11 @@ export default function ProviderProfilePage({ params }: { params: Promise<{ id: 
       <Link href={`/search?type=${provider.type}`} className="inline-flex min-h-tap items-center gap-2 self-start text-sm font-semibold text-accent-text"><ArrowLeft className="h-4 w-4" />Back to {childcare ? "babysitters" : "elder caregivers"}</Link>
       <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
         <div className="relative min-h-64 overflow-hidden rounded-lg bg-surface-secondary sm:row-span-2 sm:min-h-96">
-          <Image src={`/images/carekin/${photos[0].file}.webp`} alt={`Illustrative care scene: ${photos[0].alt}`} fill priority sizes="(max-width: 639px) 100vw, 66vw" className={`object-cover ${childcare ? "object-[center_40%]" : "object-center"}`} />
+          <Image src={`/images/carekin/brand-v2/${photos[0].file}.webp`} alt={`Illustrative care scene: ${photos[0].alt}`} fill priority sizes="(max-width: 639px) 100vw, 66vw" className={`object-cover ${childcare ? "object-[center_40%]" : "object-center"}`} />
           <span className="absolute bottom-3 left-3 rounded-md bg-ink px-3 py-1.5 text-xs text-white">{childcare ? "Childcare" : "Elder care"} · Illustrative care scene</span>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-1 sm:row-span-2">
-          {photos.slice(1).map((photo) => <div key={photo.file} className="relative min-h-32 overflow-hidden rounded-lg bg-surface-secondary sm:min-h-44"><Image src={`/images/carekin/${photo.file}.webp`} alt={`Illustrative care scene: ${photo.alt}`} fill sizes="(max-width: 639px) 50vw, 33vw" className={`object-cover ${photo.file === "caregiver-arrival" ? "object-top" : "object-center"}`} /><span className="absolute bottom-2 right-2 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative scene</span></div>)}
+          {photos.slice(1).map((photo) => <div key={photo.file} className="relative min-h-32 overflow-hidden rounded-lg bg-surface-secondary sm:min-h-44"><Image src={`/images/carekin/brand-v2/${photo.file}.webp`} alt={`Illustrative care scene: ${photo.alt}`} fill sizes="(max-width: 639px) 50vw, 33vw" className={`object-cover ${photo.file === "caregiver-arrival" ? "object-top" : "object-center"}`} /><span className="absolute bottom-2 right-2 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative scene</span></div>)}
         </div>
       </div>
       <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:gap-12">

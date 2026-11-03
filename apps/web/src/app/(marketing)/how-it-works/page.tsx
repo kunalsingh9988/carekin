@@ -11,7 +11,7 @@ export default function HowItWorksPage() {
           background-check API call.
         </p><Link href="/search" className="mt-5 inline-block text-sm font-semibold text-accent-text">
           See who&apos;s verified near you →
-        </Link></div><div className="relative min-h-64 overflow-hidden rounded-2xl"><Image src="/images/carekin/caregiver-arrival.webp" alt="A caregiver arriving at a family home" fill sizes="(max-width: 768px) 100vw, 45vw" className="object-cover" /></div></div></section>
+        </Link></div><div className="relative min-h-64 overflow-hidden rounded-2xl"><Image src="/images/carekin/brand-v2/caregiver-arrival.webp" alt="A caregiver arriving at a family home" fill sizes="(max-width: 768px) 100vw, 45vw" className="object-cover" /></div></div></section>
 
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-16">
 

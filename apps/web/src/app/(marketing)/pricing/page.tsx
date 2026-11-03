@@ -17,7 +17,7 @@ export default function PricingPage() {
   return (
     <main className="flex flex-1 flex-col"><section className="bg-surface-secondary px-6 py-10 sm:py-14"><div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-[1fr_0.85fr] md:items-center"><div><h1 className="text-4xl font-bold leading-4xl tracking-[-0.02em] text-text-primary">Simple pricing. No surprise fees at checkout.</h1><p className="mt-4 text-base leading-base text-text-secondary">
           What you see here is what you pay — our commission is already included, not added later.
-        </p></div><div className="relative min-h-56 overflow-hidden rounded-2xl"><Image src="/images/carekin/family-peace.webp" alt="A father and son sharing a peaceful moment together" fill sizes="(max-width: 768px) 100vw, 42vw" className="object-cover" /></div></div></section><div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
+        </p></div><div className="relative min-h-56 overflow-hidden rounded-2xl"><Image src="/images/carekin/brand-v2/family-peace.webp" alt="A father and son sharing a peaceful moment together" fill sizes="(max-width: 768px) 100vw, 42vw" className="object-cover" /></div></div></section><div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card className="flex flex-col gap-3">

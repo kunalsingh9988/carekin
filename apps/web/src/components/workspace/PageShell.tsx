@@ -7,7 +7,7 @@ export function PageShell({ title, description, back, image, children }: { title
     {back && <Link href={back.href} className="inline-flex min-h-tap items-center self-start text-sm font-semibold text-accent-text">← {back.label}</Link>}
     <header className={`grid gap-6 ${image ? "md:grid-cols-[1.3fr_0.7fr] md:items-center" : ""}`}>
       <div className="max-w-2xl"><h1 className="text-3xl font-bold leading-3xl sm:text-4xl sm:leading-4xl">{title}</h1><p className="mt-3 text-base leading-base text-text-secondary">{description}</p></div>
-      {image && <div className="relative h-40 overflow-hidden rounded-lg sm:h-48"><Image src={`/images/carekin/${image}.webp`} alt="Illustrative scene of care at home" fill sizes="(max-width: 767px) 100vw, 33vw" className="object-cover" /><span className="absolute bottom-2 right-2 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative care scene</span></div>}
+      {image && <div className="relative h-40 overflow-hidden rounded-lg sm:h-48"><Image src={`/images/carekin/brand-v2/${image}.webp`} alt="Illustrative scene of care at home" fill sizes="(max-width: 767px) 100vw, 33vw" className="object-cover" /><span className="absolute bottom-2 right-2 rounded-md bg-ink px-2 py-1 text-xs text-white">Illustrative care scene</span></div>}
     </header>
     {children}
   </main>;
