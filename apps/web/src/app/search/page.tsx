@@ -111,7 +111,7 @@ function SearchResults() {
             <button
               onClick={() => setNotifyRequested(true)}
               disabled={notifyRequested}
-              className="min-h-tap mt-2 flex items-center gap-2 rounded-md bg-accent px-5 text-sm font-semibold text-white disabled:opacity-60"
+              className="min-h-tap mt-2 flex items-center gap-2 rounded-md bg-accent px-5 text-sm font-semibold text-white"
             >
               <Bell className="h-4 w-4" /> {notifyRequested ? "We'll notify you" : "Notify me"}
             </button>

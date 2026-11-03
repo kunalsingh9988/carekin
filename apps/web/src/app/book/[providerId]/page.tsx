@@ -126,7 +126,7 @@ export default function BookingOptionsPage({ params }: { params: Promise<{ provi
         </p>
       </Card>
 
-      <button onClick={handleContinue} disabled={!date} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50">
+      <button onClick={handleContinue} disabled={!date} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
         Continue
       </button>
       <p className="text-center text-xs text-text-secondary">You&apos;ll confirm your details on the next step — nothing is booked yet.</p>

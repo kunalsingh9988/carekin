@@ -111,7 +111,7 @@ function SignupForm({ providerId }: { providerId: string }) {
           <p className="text-center text-xs text-text-secondary">
             Your number is only shared with {provider.name} once your booking is confirmed — never before.
           </p>
-          <button type="button" onClick={handleSkip} className="min-h-tap rounded-md text-sm font-medium text-accent-text transition-colors hover:text-accent">
+          <button type="button" onClick={handleSkip} className="min-h-tap rounded-md text-sm font-medium text-accent-text transition-colors hover:text-text-primary">
             Skip — continue as demo
           </button>
         </form>
@@ -137,7 +137,7 @@ function SignupForm({ providerId }: { providerId: string }) {
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
-          <button type="submit" disabled={otp.length !== 6} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50">
+          <button type="submit" disabled={otp.length !== 6} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
             Verify
           </button>
         </form>

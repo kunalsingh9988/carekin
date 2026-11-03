@@ -74,7 +74,7 @@ export default function ConsentPage({ params }: { params: Promise<{ providerId: 
         <button
           onClick={handleContinue}
           disabled={!checked || submitting}
-          className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+          className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover"
         >
           Continue
         </button>

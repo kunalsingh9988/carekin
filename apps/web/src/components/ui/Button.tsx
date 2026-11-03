@@ -16,7 +16,7 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   ghost: "text-accent-text hover:bg-accent-tint",
 };
 
-const BASE = "min-h-tap min-w-0 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-center text-sm font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none";
+const BASE = "min-h-tap min-w-0 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-center text-sm font-semibold transition-colors disabled:pointer-events-none";
 
 export function Button({
   variant = "primary",

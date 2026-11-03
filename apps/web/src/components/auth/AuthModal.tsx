@@ -162,7 +162,7 @@ export function AuthModal() {
               </button>
             </div>
 
-            <button type="button" onClick={handleSkip} className="min-h-tap rounded-md text-sm font-medium text-accent-text transition-colors hover:text-accent">
+            <button type="button" onClick={handleSkip} className="min-h-tap rounded-md text-sm font-medium text-accent-text transition-colors hover:text-text-primary">
               Skip — explore as a demo {role === "family" ? "family" : role}
             </button>
           </form>
@@ -190,7 +190,7 @@ export function AuthModal() {
               <button type="button" onClick={handleCancel} className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary">
                 Cancel
               </button>
-              <button type="submit" disabled={otp.length !== 6} className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50">
+              <button type="submit" disabled={otp.length !== 6} className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
                 Verify
               </button>
             </div>
