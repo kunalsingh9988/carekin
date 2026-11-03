@@ -154,36 +154,10 @@ button:active:not(:disabled) { opacity: 0.85; }
   color: var(--color-text-primary);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-/* The location input is one compound control with its map pin. Keep the
- * focus indicator on that rounded well, not around the text itself. */
-.location-search-field {
-  border-radius: var(--radius-md);
-  transition: background-color 150ms ease;
-}
-
-.location-search-field:focus-within {
-  background-color: var(--color-accent-tint);
-  box-shadow: inset 0 -3px 0 var(--color-accent-text);
-}
-
-.location-search-field input:focus-visible { outline: none; }
-.location-search-field:focus-within input::placeholder { color: var(--color-accent-text); }
-
-@media (forced-colors: active) {
-  .location-search-field:focus-within {
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .location-search-field { transition: none; }
-}
+/* Explicit visual preference: no focus indicators. Elements remain
+ * keyboard-focusable; this intentionally reduces keyboard wayfinding. */
+:focus,
+:focus-visible { outline: none; }
 
 /* Display face is reserved for headings 28px and up (brand rule). */
 h1,

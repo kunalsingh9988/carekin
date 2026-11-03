@@ -99,7 +99,7 @@ function SignupForm({ providerId }: { providerId: string }) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+919876543210"
-              className="min-h-tap rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent"
+              className="min-h-tap rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary"
             />
           </label>
 
@@ -131,7 +131,7 @@ function SignupForm({ providerId }: { providerId: string }) {
               maxLength={6}
               inputMode="numeric"
               placeholder="123456"
-              className="min-h-tap rounded-md border border-border bg-surface px-4 text-center text-lg tracking-widest text-text-primary placeholder:text-text-secondary focus:border-accent"
+              className="min-h-tap rounded-md border border-border bg-surface px-4 text-center text-lg tracking-widest text-text-primary placeholder:text-text-secondary"
             />
           </label>
 

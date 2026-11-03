@@ -64,7 +64,9 @@ documented stand-in).
   Rating green, price + struck original together.
 - Status chips: Mist/Slate neutral; confirmed → violet tint + violet
   deep; completed/paid → green; disputed/error → red.
-- Focus ring: Violet, 2px, 2px offset. Selection: Violet tint.
+- Focus styling is disabled at the user's explicit request. Keyboard navigation
+  remains enabled, but there is no visible focus indicator; this reduces
+  keyboard accessibility. Selection retains the violet tint.
 - Buttons: violet fill + white label (primary), Paper + Line border
   (secondary), Alert red (danger), Slate text (ghost).
 - Depth: single soft shadow on interactive cards; no border+shadow

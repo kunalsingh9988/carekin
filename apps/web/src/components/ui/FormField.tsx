@@ -17,7 +17,7 @@ function FieldWrapper({ label, error, children }: FieldWrapperProps) {
   );
 }
 
-const INPUT_CLASSES = "min-h-tap rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent";
+const INPUT_CLASSES = "min-h-tap rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary";
 
 export const TextField = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }>(
   ({ label, error, className = "", ...rest }, ref) => (
