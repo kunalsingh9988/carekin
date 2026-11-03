@@ -59,7 +59,7 @@ export function Navbar() {
   const links = !user ? PUBLIC_LINKS : user.role === "family" ? [PUBLIC_LINKS[0], ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-surface/95 px-4 py-3 backdrop-blur sm:px-6">
+    <header className="site-header sticky top-0 z-30 border-b border-border/80 bg-surface/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="text-lg font-bold tracking-[-0.03em] text-text-primary">
@@ -100,6 +100,7 @@ export function Navbar() {
             className="flex min-h-tap min-w-tap items-center justify-center lg:hidden"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
+            aria-controls="site-navigation"
           >
             {menuOpen ? <X className="h-5 w-5 text-text-primary" /> : <Menu className="h-5 w-5 text-text-primary" />}
           </button>
@@ -107,7 +108,7 @@ export function Navbar() {
       </div>
 
       {menuOpen && (
-        <nav className="mt-3 flex flex-col gap-1 border-t border-border pt-3 lg:hidden">
+        <nav id="site-navigation" className="mt-3 flex max-h-[calc(100dvh-6rem)] flex-col gap-1 overflow-y-auto overscroll-contain border-t border-border pt-3 lg:hidden">
           <div className="sm:hidden"><LanguageToggle /></div>
           {links.map((link) => (
             <Link

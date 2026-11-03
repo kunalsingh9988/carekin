@@ -68,3 +68,11 @@ documented stand-in).
 
 Short, plain, reassuring. Sentence case. Lead with outcome and time.
 Always show price + rating together. Honest demo labels stay.
+
+## Responsive behavior
+
+- Phone layouts use 16px gutters, full-width forms and 48px action targets; tablet layouts give content room before splitting compact cards.
+- Onboarding uses a compact image introduction on phones and a two-column layout from tablet widths.
+- Navigation and notifications stay within the viewport; chat uses dynamic viewport height and scrolls messages independently.
+- Fixed booking controls respect safe areas. Native zoom remains enabled and touch-device form fields use at least 16px text.
+- Check at 320, 390, 768 and 1024px. Physical iOS/Android keyboard, notch and browser-chrome behavior still requires device testing.

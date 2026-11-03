@@ -40,7 +40,7 @@ export default function AdminPayoutsPage() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-1 flex-col gap-6 px-6 py-12">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold text-text-primary">Payouts</h1>
         <Button onClick={handleRun} disabled={running || pendingCount === 0}>
           {running ? "Running…" : `Simulate payout run (${pendingCount} pending)`}

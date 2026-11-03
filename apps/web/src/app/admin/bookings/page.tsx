@@ -39,8 +39,8 @@ export default function AdminBookingsPage() {
       ) : (
         <div className="flex flex-col gap-2">
           {bookings.map((b) => (
-            <Card key={b.id} className="flex items-center justify-between gap-4">
-              <div className="flex-1">
+            <Card key={b.id} className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-text-primary">
                   {families[b.family_id]?.name ?? "Family"} → {providers[b.provider_id]?.name ?? "Provider"}
                 </p>

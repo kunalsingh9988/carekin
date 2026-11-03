@@ -30,7 +30,7 @@ export default function ProviderChatPage({ params }: { params: Promise<{ id: str
   if (allowed === undefined) return null;
 
   return (
-    <main className="mx-auto flex h-[calc(100vh-73px)] w-full max-w-md flex-1 flex-col gap-4 px-6 py-6">
+    <main className="chat-page mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
       <h1 className="text-lg font-semibold text-text-primary">Chat</h1>
       <ChatThread bookingId={id} user={user} />
     </main>

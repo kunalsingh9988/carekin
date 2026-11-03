@@ -23,7 +23,7 @@ export function ChatThread({ bookingId, user }: { bookingId: string; user: Curre
   }, [bookingId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages]);
 
   if (locked === null) return null;
@@ -41,22 +41,24 @@ export function ChatThread({ bookingId, user }: { bookingId: string; user: Curre
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto rounded-lg bg-surface-secondary p-4">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain rounded-lg bg-surface-secondary p-4">
         {messages.length === 0 && <p className="text-center text-sm text-text-secondary">Say hello — messages appear here.</p>}
         {messages.map((m) => (
-          <div key={m.id} className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${m.sender_id === user.id ? "self-end bg-accent text-white" : "self-start bg-surface text-text-primary"}`}>
+          <div key={m.id} className={`max-w-[85%] break-words rounded-lg px-3 py-2 text-sm [overflow-wrap:anywhere] sm:max-w-[75%] ${m.sender_id === user.id ? "self-end bg-accent text-white" : "self-start bg-surface text-text-primary"}`}>
             {m.content}
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={handleSend} className="flex gap-2">
+      <form onSubmit={handleSend} className="flex shrink-0 gap-2">
         <input
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Type a message…"
-          className="min-h-tap flex-1 rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent"
+          aria-label="Message"
+          enterKeyHint="send"
+          className="min-h-tap min-w-0 flex-1 rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent"
         />
         <button type="submit" className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-text">
           Send

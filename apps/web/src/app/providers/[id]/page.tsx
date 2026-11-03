@@ -104,7 +104,7 @@ export default function ProviderProfilePage({ params }: { params: Promise<{ id: 
 
       {/* Sticky CTA — price + struck original beside the single violet
           action, exactly the brand's book-now row. */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface px-4 pb-4 pt-3">
+      <div className="safe-bottom-bar fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface px-4 pb-4 pt-3">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <div>
             <p className="price text-base font-bold text-text-primary">

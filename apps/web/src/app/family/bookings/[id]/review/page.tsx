@@ -84,7 +84,7 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div className="flex justify-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <button key={i} type="button" onClick={() => setRating(i + 1)} aria-label={`${i + 1} stars`}>
+            <button key={i} type="button" className="flex min-h-tap min-w-tap items-center justify-center" onClick={() => setRating(i + 1)} aria-label={`${i + 1} stars`} aria-pressed={rating === i + 1}>
               <Star className={`h-8 w-8 ${i < rating ? "fill-verified text-verified" : "text-border"}`} />
             </button>
           ))}

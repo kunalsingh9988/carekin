@@ -62,8 +62,8 @@ export default function VerificationQueuePage() {
           {pending.map((p) => (
             <li key={p.id}>
               <Card className="flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+                  <div className="min-w-0">
                     <p className="font-medium text-text-primary">
                       {p.type === "caregiver" ? "Elder caregiver" : "Babysitter"} · {p.name}
                     </p>

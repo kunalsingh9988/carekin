@@ -71,12 +71,12 @@ export default function DocumentUploadPage() {
 
       <div className="flex flex-col gap-3">
         {REQUIRED.map((doc) => (
-          <Card key={doc.type} className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+          <Card key={doc.type} className="flex flex-col items-stretch justify-between gap-3 xl:flex-row xl:items-center">
+            <div className="flex min-w-0 items-center gap-2">
               <FileText className="h-5 w-5 shrink-0 text-text-secondary" />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-text-primary">{doc.label}</p>
-                {uploaded[doc.type] && <p className="text-xs font-medium text-verified">{uploaded[doc.type]} uploaded</p>}
+                {uploaded[doc.type] && <p className="break-all text-xs font-medium text-verified">{uploaded[doc.type]} uploaded</p>}
               </div>
             </div>
             <Button variant="secondary" onClick={() => handleSimulatedUpload(doc.type)} className="shrink-0">

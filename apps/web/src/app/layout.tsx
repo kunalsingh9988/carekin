@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Figtree, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
@@ -21,6 +21,13 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 export const metadata: Metadata = {
   title: { default: "CareKin", template: "%s · CareKin" },
   description: "Verified elder care and babysitting, close to home. (Prototype — no real backend.)",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
