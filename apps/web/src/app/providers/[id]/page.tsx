@@ -115,7 +115,7 @@ export default function ProviderProfilePage({ params }: { params: Promise<{ id: 
           </div>
           <Link
             href={`/book/${provider.id}`}
-            className="min-h-tap flex flex-1 items-center justify-center rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text sm:flex-none sm:px-8"
+            className="min-h-tap flex flex-1 items-center justify-center rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover sm:flex-none sm:px-8"
           >
             Book now
           </Link>

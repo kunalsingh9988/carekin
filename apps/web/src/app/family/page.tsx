@@ -44,7 +44,7 @@ export default function FamilyDashboardPage() {
         <Search className="h-10 w-10 text-text-secondary" strokeWidth={1.5} />
         <h1 className="text-xl font-semibold text-text-primary">Let&apos;s find you someone you trust.</h1>
         <p className="text-sm text-text-secondary">You haven&apos;t booked with CareKin yet — start with a search.</p>
-        <Link href="/search" className="min-h-tap flex items-center rounded-md bg-accent px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-text">
+        <Link href="/search" className="min-h-tap flex items-center rounded-md bg-accent px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-hover">
           Search now
         </Link>
       </main>

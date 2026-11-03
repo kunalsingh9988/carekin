@@ -10,9 +10,9 @@ interface CommonProps {
 }
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-accent text-white hover:bg-accent-text active:bg-accent-text",
+  primary: "bg-accent text-white hover:bg-accent-hover active:bg-accent-hover",
   secondary: "border border-border bg-surface text-text-primary hover:bg-surface-secondary",
-  danger: "bg-danger text-white",
+  danger: "bg-danger text-bg-canvas",
   ghost: "text-accent-text hover:bg-accent-tint",
 };
 

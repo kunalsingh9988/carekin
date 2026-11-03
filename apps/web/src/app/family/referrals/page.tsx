@@ -52,7 +52,7 @@ export default function ReferralsPage() {
               href={`https://wa.me/?text=${encodeURIComponent(`Found a great verified caregiver platform — use my link for ₹${bonus} off: ${link}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="min-h-tap flex flex-1 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent-text"
+              className="min-h-tap flex flex-1 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               Share on WhatsApp
             </a>

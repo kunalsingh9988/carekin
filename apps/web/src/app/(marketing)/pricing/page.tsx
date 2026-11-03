@@ -50,7 +50,7 @@ export default function PricingPage() {
             <span className="ml-1 text-text-secondary">— {WEEKLY_DISCOUNT_PCT}% less than booking one at a time</span>
           </p>
           <p className="text-xs leading-sm text-text-secondary">Cancel or change your plan anytime — no lock-in</p>
-          <Link href="/search" className="min-h-tap mt-2 flex items-center justify-center rounded-md bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent-text">
+          <Link href="/search" className="min-h-tap mt-2 flex items-center justify-center rounded-md bg-accent text-sm font-semibold text-white transition-colors hover:bg-accent-hover">
             See weekly plans
           </Link>
         </Card>

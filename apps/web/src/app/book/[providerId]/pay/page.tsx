@@ -149,7 +149,7 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
       </p>
 
       {state === "idle" && (
-        <button onClick={handlePay} className="price min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
+        <button onClick={handlePay} className="price min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
           {`Pay ₹${(effectiveAmount / 100).toFixed(0)} & confirm booking`}
         </button>
       )}
@@ -167,7 +167,7 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
           <p className="text-center text-sm text-text-primary">
             Your payment didn&apos;t go through. No charge was made — please try again.
           </p>
-          <button onClick={handlePay} className="min-h-tap w-full rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
+          <button onClick={handlePay} className="min-h-tap w-full rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
             Try again
           </button>
         </div>

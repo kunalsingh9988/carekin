@@ -17,6 +17,7 @@
   --color-text-secondary: var(--ck-color-text-secondary);
   --color-accent: var(--ck-color-accent);
   --color-accent-text: var(--ck-color-accent-text);
+  --color-accent-hover: var(--ck-color-accent-hover);
   --color-accent-tint: var(--ck-color-accent-tint);
   --color-verified: var(--ck-color-verified);
   --color-highlight: var(--ck-color-highlight);
@@ -76,6 +77,36 @@ body {
 
 :root { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
+
+/* Field defaults must never inherit a light-on-dark label color onto a
+ * light native control. Utilities can still opt into transparent fields. */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), textarea, select {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+    caret-color: var(--color-text-primary);
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 1;
+  }
+  option, optgroup { color: var(--color-text-primary); background-color: var(--color-surface); }
+}
+
+input:autofill, textarea:autofill, select:autofill {
+  -webkit-text-fill-color: var(--color-text-primary);
+  caret-color: var(--color-text-primary);
+  box-shadow: 0 0 0 1000px var(--color-surface) inset;
+}
+
+/* Disabled actions remain legible; muted surfaces, not faded text,
+ * communicate that an action is unavailable. */
+button:disabled {
+  opacity: 1;
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface-secondary);
+  cursor: not-allowed;
+}
 
 html {
   -webkit-text-size-adjust: 100%;

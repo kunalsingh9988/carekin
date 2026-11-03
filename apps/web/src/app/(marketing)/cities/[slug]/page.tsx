@@ -39,7 +39,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
 
       <Link
         href={`/search?city=${city.slug}`}
-        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-text"
+        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-hover"
       >
         Search verified caregivers in {city.name}
       </Link>

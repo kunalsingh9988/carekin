@@ -63,7 +63,7 @@ export function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="text-lg font-bold tracking-[-0.03em] text-text-primary">
-            Care<span className="text-accent">Kin</span>
+            Care<span className="text-accent-text">Kin</span>
           </Link>
           <nav className="hidden items-center gap-5 lg:flex">
             {links.map((link) => (
@@ -94,7 +94,7 @@ export function Navbar() {
               Log in
             </button>
           )}
-          {!user && <Link href="/search" className="hidden min-h-tap items-center gap-1.5 rounded-lg bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-text sm:inline-flex">Find care <ArrowRight className="h-4 w-4" /></Link>}
+          {!user && <Link href="/search" className="hidden min-h-tap items-center gap-1.5 rounded-lg bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-hover sm:inline-flex">Find care <ArrowRight className="h-4 w-4" /></Link>}
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="flex min-h-tap min-w-tap items-center justify-center lg:hidden"

@@ -157,7 +157,7 @@ export function AuthModal() {
               <button type="button" onClick={handleCancel} className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary">
                 Cancel
               </button>
-              <button type="submit" className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
+              <button type="submit" className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
                 Send OTP
               </button>
             </div>
@@ -190,7 +190,7 @@ export function AuthModal() {
               <button type="button" onClick={handleCancel} className="min-h-tap flex-1 rounded-md border border-border text-base font-medium text-text-secondary">
                 Cancel
               </button>
-              <button type="submit" disabled={otp.length !== 6} className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text disabled:opacity-50">
+              <button type="submit" disabled={otp.length !== 6} className="min-h-tap flex-1 rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50">
                 Verify
               </button>
             </div>

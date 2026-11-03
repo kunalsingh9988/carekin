@@ -89,7 +89,7 @@ export default function AdminDisputesPage() {
           <p className="mb-2 text-sm font-medium text-text-secondary">Resolved</p>
           <div className="flex flex-col gap-2">
             {resolved.map((d) => (
-              <Card key={d.id} className="opacity-70">
+              <Card key={d.id}>
                 <p className="text-sm text-text-primary">{d.reason}</p>
                 <p className="text-xs text-text-secondary">Resolution: {d.resolution_notes}</p>
               </Card>

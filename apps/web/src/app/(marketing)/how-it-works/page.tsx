@@ -46,7 +46,7 @@ export default function HowItWorksPage() {
 
       <Link
         href="/search"
-        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-text"
+        className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-hover"
       >
         See who&apos;s verified near you
       </Link>

@@ -211,7 +211,7 @@ export default function FamilyOnboardingPage() {
             </Card>
           </div>
 
-          <Link href="/search" className="min-h-tap flex items-center justify-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-text">
+          <Link href="/search" className="min-h-tap flex items-center justify-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-hover">
             Find verified care near you
           </Link>
           <Link href="/family" className="min-h-tap flex items-center justify-center rounded-md text-sm font-medium text-text-secondary">

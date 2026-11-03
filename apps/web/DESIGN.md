@@ -23,6 +23,12 @@ the first paint and persists across navigation and reloads. Native form
 controls follow the selected color scheme. Homepage hero bands use semantic
 surfaces so they switch along with the rest of the application.
 
+Field values, placeholders, carets, native options and autofill use paired
+theme colors. Button hover fills use `accentHover`, never the lightened
+dark-mode `accentText` token. Disabled actions retain opaque, readable labels.
+Light-mode success green is contrast-adjusted to `#116E40` for small tinted
+status badges. Token contrast regression tests enforce 4.5:1 for these pairs.
+
 | Role | Value | Rule |
 |---|---|---|
 | Paper | `#FFFFFF` | page + card ground (55%) |

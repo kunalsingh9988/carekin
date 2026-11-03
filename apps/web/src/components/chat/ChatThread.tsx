@@ -60,7 +60,7 @@ export function ChatThread({ bookingId, user }: { bookingId: string; user: Curre
           enterKeyHint="send"
           className="min-h-tap min-w-0 flex-1 rounded-md border border-border bg-surface px-4 text-base text-text-primary placeholder:text-text-secondary focus:border-accent"
         />
-        <button type="submit" className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-text">
+        <button type="submit" className="min-h-tap rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-hover">
           Send
         </button>
       </form>

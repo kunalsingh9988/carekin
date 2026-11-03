@@ -54,7 +54,7 @@ function ConfirmedContent() {
         </p>
       </div>
 
-      <Link href={`/family/bookings/${booking.id}/chat`} className="min-h-tap flex items-center justify-center rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
+      <Link href={`/family/bookings/${booking.id}/chat`} className="min-h-tap flex items-center justify-center rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
         Message {provider.name}
       </Link>
 

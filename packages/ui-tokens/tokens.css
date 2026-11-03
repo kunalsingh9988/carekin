@@ -11,11 +11,12 @@
   --ck-color-accent: #6E42E5;
   --ck-color-accent-text: #4F2BB8;
   --ck-color-accent-tint: #EFE9FF;
-  --ck-color-verified: #14804A;
+  --ck-color-accent-hover: #4F2BB8;
+  --ck-color-verified: #116E40;
   --ck-color-highlight: #EFE9FF;
-  --ck-color-danger: #C62828;
+  --ck-color-danger: #B91C1C;
   --ck-color-warning: #6B6B72;
-  --ck-color-success-generic: #14804A;
+  --ck-color-success-generic: #116E40;
   --ck-font-display-latin: var(--next-font-bricolage-grotesque), 'Bricolage Grotesque', sans-serif;
   --ck-font-display-devanagari: var(--next-font-noto-sans-devanagari), 'Noto Sans Devanagari', sans-serif;
   --ck-font-body-latin: var(--next-font-figtree), 'Figtree', sans-serif;
@@ -66,12 +67,13 @@
   --ck-color-text-secondary: #A1A1AA;
   --ck-color-accent: #6E42E5;
   --ck-color-accent-text: #A98FF5;
+  --ck-color-accent-hover: #4F2BB8;
   --ck-color-accent-tint: #2E2350;
-  --ck-color-verified: #3BA469;
+  --ck-color-verified: #4DB57B;
   --ck-color-highlight: #2E2350;
-  --ck-color-danger: #E57373;
+  --ck-color-danger: #F08C8C;
   --ck-color-warning: #A1A1AA;
-  --ck-color-success-generic: #3BA469;
+  --ck-color-success-generic: #4DB57B;
   }
 }
 
@@ -85,12 +87,13 @@
   --ck-color-text-secondary: #A1A1AA;
   --ck-color-accent: #6E42E5;
   --ck-color-accent-text: #A98FF5;
+  --ck-color-accent-hover: #4F2BB8;
   --ck-color-accent-tint: #2E2350;
-  --ck-color-verified: #3BA469;
+  --ck-color-verified: #4DB57B;
   --ck-color-highlight: #2E2350;
-  --ck-color-danger: #E57373;
+  --ck-color-danger: #F08C8C;
   --ck-color-warning: #A1A1AA;
-  --ck-color-success-generic: #3BA469;
+  --ck-color-success-generic: #4DB57B;
 }
 
 :root[data-theme="light"] {
@@ -104,9 +107,10 @@
   --ck-color-accent: #6E42E5;
   --ck-color-accent-text: #4F2BB8;
   --ck-color-accent-tint: #EFE9FF;
-  --ck-color-verified: #14804A;
+  --ck-color-accent-hover: #4F2BB8;
+  --ck-color-verified: #116E40;
   --ck-color-highlight: #EFE9FF;
-  --ck-color-danger: #C62828;
+  --ck-color-danger: #B91C1C;
   --ck-color-warning: #6B6B72;
-  --ck-color-success-generic: #14804A;
+  --ck-color-success-generic: #116E40;
 }

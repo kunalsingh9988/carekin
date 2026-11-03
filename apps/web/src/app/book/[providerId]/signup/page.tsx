@@ -105,7 +105,7 @@ function SignupForm({ providerId }: { providerId: string }) {
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
-          <button type="submit" className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text">
+          <button type="submit" className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover">
             Send OTP
           </button>
           <p className="text-center text-xs text-text-secondary">
@@ -137,7 +137,7 @@ function SignupForm({ providerId }: { providerId: string }) {
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
-          <button type="submit" disabled={otp.length !== 6} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-text disabled:opacity-50">
+          <button type="submit" disabled={otp.length !== 6} className="min-h-tap rounded-md bg-accent text-base font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50">
             Verify
           </button>
         </form>
