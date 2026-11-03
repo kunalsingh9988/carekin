@@ -6,6 +6,7 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getBooking } from "@/lib/storage/repositories/bookings";
 import { getMyProvider } from "@/lib/storage/repositories/providers";
 import { ChatThread } from "@/components/chat/ChatThread";
+import { ChatCareHeader } from "@/components/care/ChatCareHeader";
 
 export default function ProviderChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -31,7 +32,7 @@ export default function ProviderChatPage({ params }: { params: Promise<{ id: str
 
   return (
     <main className="chat-page mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
-      <h1 className="text-lg font-semibold text-text-primary">Chat</h1>
+      <ChatCareHeader id={id} user={user} />
       <ChatThread bookingId={id} user={user} />
     </main>
   );

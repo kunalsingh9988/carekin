@@ -9,6 +9,7 @@ import { listBookingsForFamily } from "@/lib/storage/repositories/bookings";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import type { Booking, FamilyProfile, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { ActiveCareEntry } from "@/components/care/ActiveCareEntry";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
 
 const UPCOMING: Booking["status"][] = ["requested", "confirmed", "in_progress"];
@@ -54,6 +55,7 @@ export default function FamilyDashboardPage() {
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
       <h1 className="text-2xl font-semibold text-text-primary">Welcome back, {family.name.split(" ")[0]}.</h1>
+      <ActiveCareEntry role="family" />
 
       {nextBooking && provider ? (
         <Card className="flex flex-col gap-2">

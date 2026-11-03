@@ -87,6 +87,7 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
         <Row label="Amount" value={`₹${(booking.amount_paise / 100).toFixed(0)}`} />
         {booking.type === "subscription" && <Row label="Plan" value="Weekly plan" />}
       </Card>
+      <LinkButton href={`/family/bookings/${booking.id}/active`} variant="secondary" fullWidth>Active Care · safety & visit timeline</LinkButton>
 
       {["requested", "confirmed"].includes(booking.status) && <LinkButton href={`/family/bookings/${booking.id}/reschedule`} variant="secondary" fullWidth>Reschedule this visit</LinkButton>}
       {booking.subscription_id && <LinkButton href={`/family/plans/${booking.subscription_id}`} variant="secondary" fullWidth>Manage care plan</LinkButton>}

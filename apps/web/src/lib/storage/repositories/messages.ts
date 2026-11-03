@@ -1,9 +1,11 @@
 import { get, newId, set } from "../client";
 import type { Message, UserRole } from "../types";
+import { isContactRestricted } from "./care";
 
 const KEY = "messages";
 
 export async function listMessages(bookingId: string): Promise<Message[]> {
+  if (isContactRestricted(bookingId)) throw new Error("Messaging is restricted for this visit. Use Active Care for safety options.");
   const all = get<Message[]>(KEY, []);
   return all.filter((m) => m.booking_id === bookingId).sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
@@ -14,6 +16,7 @@ export async function sendMessage(
   senderRole: UserRole,
   content: string,
 ): Promise<Message> {
+  if (isContactRestricted(bookingId)) throw new Error("Messaging is restricted for this visit. Use Active Care for safety options.");
   const all = get<Message[]>(KEY, []);
   const created: Message = {
     id: newId(),

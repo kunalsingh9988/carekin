@@ -42,6 +42,7 @@ const ROLE_LINKS: Record<CurrentUser["role"], { href: string; label: string }[]>
     { href: "/admin/verification-queue", label: "Verification" },
     { href: "/admin/bookings", label: "Bookings" },
     { href: "/admin/users", label: "People" },
+    { href: "/admin/safety", label: "Safety" },
     { href: "/admin/disputes", label: "Disputes" },
     { href: "/admin/payouts", label: "Payouts" },
   ],

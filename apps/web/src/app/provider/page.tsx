@@ -13,6 +13,7 @@ import { getFamilyProfileById, getCareRecipient } from "@/lib/storage/repositori
 import { getRatingSummary } from "@/lib/storage/repositories/reviews";
 import type { Booking, CareRecipient, FamilyProfile, Payout, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { ActiveCareEntry } from "@/components/care/ActiveCareEntry";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
 import { ProviderAvatar } from "@/components/ui/ProviderAvatar";
 
@@ -89,6 +90,7 @@ export default function ProviderDashboardPage() {
         </div>
       </div>
 
+      <ActiveCareEntry role="provider" />
       {/* Verification status — the gate for everything else. */}
       {provider.verification_status === "approved" ? (
         <Card className="flex items-center justify-between">

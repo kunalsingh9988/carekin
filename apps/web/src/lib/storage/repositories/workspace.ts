@@ -71,6 +71,7 @@ export async function performBookingAction(user: CurrentUser, bookingId: string,
   const booking = bookings.find((b) => b.id === bookingId);
   const provider = get<Provider[]>("providers", []).find((p) => p.id === booking?.provider_id);
   if (!booking || (user.role === "provider" && provider?.user_id !== user.id)) throw new Error("Booking unavailable for this account.");
+  if (["start", "complete"].includes(action) && get<Record<string, unknown>>("careVisits", {})[bookingId]) throw new Error("Use Active Care for PIN check-in and family-confirmed check-out.");
   const allowed = { accept: ["requested"], decline: ["requested"], start: ["confirmed"], complete: ["in_progress"], cancel: ["requested", "confirmed"] };
   if (!allowed[action]?.includes(booking.status)) throw new Error("This action is no longer available. Refresh the booking.");
   if (action === "cancel" && user.role !== "admin") throw new Error("Use the booking response actions instead.");

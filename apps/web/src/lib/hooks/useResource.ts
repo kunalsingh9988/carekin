@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useResource<T>(loader: () => Promise<T>) {
   const [state, setState] = useState<{ data?: T; error?: string }>({});
@@ -11,5 +11,6 @@ export function useResource<T>(loader: () => Promise<T>) {
     });
     return () => { active = false; };
   }, [loader, version]);
-  return { ...state, reload: () => setVersion((value) => value + 1) };
+  const reload = useCallback(() => setVersion((value) => value + 1), []);
+  return { ...state, reload };
 }

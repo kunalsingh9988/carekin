@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { listMessages, sendMessage } from "@/lib/storage/repositories/messages";
 import { getBooking } from "@/lib/storage/repositories/bookings";
+import { isContactRestricted } from "@/lib/storage/repositories/care";
 import type { CurrentUser, Message } from "@/lib/storage/types";
 
 const UNLOCKED_STATUSES = ["confirmed", "in_progress", "completed"];
@@ -15,11 +16,25 @@ export function ChatThread({ bookingId, user }: { bookingId: string; user: Curre
   const [messages, setMessages] = useState<Message[]>([]);
   const [locked, setLocked] = useState<boolean | null>(null);
   const [content, setContent] = useState("");
+  const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getBooking(bookingId).then((b) => setLocked(b ? !UNLOCKED_STATUSES.includes(b.status) : true));
-    listMessages(bookingId).then(setMessages);
+    let active = true;
+    async function refresh() {
+      try {
+        const booking = await getBooking(bookingId);
+        const restricted = isContactRestricted(bookingId);
+        if (!active) return;
+        setLocked(!booking || !UNLOCKED_STATUSES.includes(booking.status) || restricted);
+        if (restricted) { setMessages([]); setError("Messaging is restricted for this visit. Use Safety & support above. No report details are disclosed here."); return; }
+        const items = await listMessages(bookingId);
+        if (active) { setMessages((previous) => previous.length === items.length && previous.every((m, i) => m.id === items[i].id) ? previous : items); setError(""); }
+      } catch(e) { if (active) { setError(e instanceof Error ? e.message : "Unable to load messages."); setLocked(true); } }
+    }
+    void refresh();
+    const interval = setInterval(refresh, 3000);
+    return () => { active = false; clearInterval(interval); };
   }, [bookingId]);
 
   useEffect(() => {
@@ -29,19 +44,19 @@ export function ChatThread({ bookingId, user }: { bookingId: string; user: Curre
   if (locked === null) return null;
 
   if (locked) {
-    return <p className="py-12 text-center text-sm text-text-secondary">Chat unlocks once this booking is confirmed.</p>;
+    return <p role="status" className="py-6 text-center text-sm text-text-secondary">{error || "Chat unlocks once this booking is confirmed."}</p>;
   }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!content.trim()) return;
-    const msg = await sendMessage(bookingId, user.id, user.role, content.trim());
-    setMessages((prev) => [...prev, msg]);
-    setContent("");
+    try { const msg = await sendMessage(bookingId, user.id, user.role, content.trim()); setMessages((prev) => [...prev, msg]); setContent(""); setError(""); }
+    catch(e) { setError(e instanceof Error ? e.message : "Unable to send message."); if (isContactRestricted(bookingId)) setLocked(true); }
   }
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain rounded-lg bg-surface-secondary p-4">
         {messages.length === 0 && <p className="text-center text-sm text-text-secondary">Say hello — messages appear here.</p>}
         {messages.map((m) => (

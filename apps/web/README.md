@@ -2,13 +2,22 @@
 
 ## Frontend completion extension
 
-The web app now contains 52 page templates, including searchable help, local
+The web app now contains 55 page templates, including searchable help, local
 support drafts, clearly marked policy drafts, family plan management and visit
 rescheduling, provider availability/profile editing and booking details, plus
 admin people/provider/booking detail screens. See
 [the route inventory and functional boundaries](docs/frontend-completion.md).
 These additions remain demo-only; they do not implement real support delivery,
 recurring billing, real availability, account administration or verification.
+
+## Active Care safety prototype
+
+Family/provider Active Care screens, a shared safety toolkit, private local
+reports, visit interruption, chat restrictions and an admin safety queue are
+implemented. See [Active Care scope and real-launch prerequisites](docs/active-care.md).
+This is **unmonitored, browser-local demo functionality**, not an emergency
+response service. Server timestamps, secure reporting, staffed support, masked
+calling and live trusted-contact sharing remain required before real launch.
 
 Per the "CareKin Full Website Build Prompt": guest browsing → signup-at-
 commitment funnel. No backend, no real auth, no real payments — every

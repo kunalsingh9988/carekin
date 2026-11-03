@@ -7,7 +7,6 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getMyProvider } from "@/lib/storage/repositories/providers";
 import { listBookingsForProvider, updateBookingStatus } from "@/lib/storage/repositories/bookings";
 import { getFamilyProfileById, getCareRecipient } from "@/lib/storage/repositories/families";
-import { ensurePayoutForCompletedBooking } from "@/lib/storage/repositories/payouts";
 import { getPaymentForBooking } from "@/lib/storage/repositories/payments";
 import { addNotification } from "@/lib/storage/repositories/notifications";
 import type { Booking, CareRecipient, FamilyProfile, Provider } from "@/lib/storage/types";
@@ -76,16 +75,6 @@ export default function ProviderBookingsPage() {
     await load(provider!.id);
   }
 
-  async function markInProgress(booking: Booking) {
-    await updateBookingStatus(booking.id, "in_progress");
-    await load(provider!.id);
-  }
-
-  async function markCompleted(booking: Booking) {
-    const updated = await updateBookingStatus(booking.id, "completed");
-    await ensurePayoutForCompletedBooking(updated);
-    await load(provider!.id);
-  }
 
   const requests = bookings.filter((b) => b.status === "requested");
   const upcoming = bookings.filter((b) => b.status === "confirmed" || b.status === "in_progress");
@@ -141,15 +130,7 @@ export default function ProviderBookingsPage() {
                   <Link href={`/provider/bookings/${b.id}/chat`} className="text-sm font-medium text-accent-text">
                     Open chat →
                   </Link>
-                  {b.status === "confirmed" ? (
-                    <Button variant="secondary" onClick={() => markInProgress(b)}>
-                      Start visit
-                    </Button>
-                  ) : (
-                    <Button variant="secondary" onClick={() => markCompleted(b)}>
-                      Mark completed
-                    </Button>
-                  )}
+                  <Link href={`/provider/bookings/${b.id}/active`} className="min-h-tap py-3 text-sm font-semibold text-accent-text">Active Care · check-in / out →</Link>
                 </div>
               )}
             </Card>
