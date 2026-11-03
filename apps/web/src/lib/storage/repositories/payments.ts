@@ -1,3 +1,5 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import type { Payment } from "../types";
 
@@ -13,7 +15,7 @@ function delay(ms: number): Promise<void> {
 // randomized ~10% failure rate, so the payment-failure UI is actually
 // reachable during demos instead of purely theoretical (Guardrails,
 // Section 8).
-export async function simulatePayment(bookingId: string, amountPaise: number): Promise<Payment> {
+ async function demo_simulatePayment(bookingId: string, amountPaise: number): Promise<Payment> {
   await delay(FAKE_DELAY_MS);
 
   const succeeded = Math.random() < SUCCESS_RATE;
@@ -32,7 +34,11 @@ export async function simulatePayment(bookingId: string, amountPaise: number): P
   return created;
 }
 
-export async function getPaymentForBooking(bookingId: string): Promise<Payment | null> {
+ async function demo_getPaymentForBooking(bookingId: string): Promise<Payment | null> {
   const all = get<Payment[]>(KEY, []);
   return all.filter((p) => p.booking_id === bookingId).sort((a, b) => b.created_at.localeCompare(a.created_at))[0] ?? null;
 }
+
+// Backend adapters
+export const simulatePayment: typeof demo_simulatePayment = (...args) => backendEnabled ? remote("payments.simulatePayment", args) : demo_simulatePayment(...args);
+export const getPaymentForBooking: typeof demo_getPaymentForBooking = (...args) => backendEnabled ? remote("payments.getPaymentForBooking", args) : demo_getPaymentForBooking(...args);

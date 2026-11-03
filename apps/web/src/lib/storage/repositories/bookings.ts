@@ -1,3 +1,5 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import { DEFAULT_COMMISSION_RATE } from "../../business";
 import type { Booking, BookingStatus, BookingType } from "../types";
@@ -15,7 +17,7 @@ export interface CreateBookingInput {
   subscriptionId?: string | null;
 }
 
-export async function createBooking(input: CreateBookingInput): Promise<Booking> {
+ async function demo_createBooking(input: CreateBookingInput): Promise<Booking> {
   const all = get<Booking[]>(KEY, []);
   const now = new Date().toISOString();
   const created: Booking = {
@@ -37,26 +39,26 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
   return created;
 }
 
-export async function listBookingsForFamily(familyId: string): Promise<Booking[]> {
+ async function demo_listBookingsForFamily(familyId: string): Promise<Booking[]> {
   const all = get<Booking[]>(KEY, []);
   return all.filter((b) => b.family_id === familyId).sort((a, b) => b.scheduled_at.localeCompare(a.scheduled_at));
 }
 
-export async function listBookingsForProvider(providerId: string): Promise<Booking[]> {
+ async function demo_listBookingsForProvider(providerId: string): Promise<Booking[]> {
   const all = get<Booking[]>(KEY, []);
   return all.filter((b) => b.provider_id === providerId).sort((a, b) => b.scheduled_at.localeCompare(a.scheduled_at));
 }
 
-export async function listAllBookings(): Promise<Booking[]> {
+ async function demo_listAllBookings(): Promise<Booking[]> {
   return get<Booking[]>(KEY, []).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
-export async function getBooking(id: string): Promise<Booking | null> {
+ async function demo_getBooking(id: string): Promise<Booking | null> {
   const all = get<Booking[]>(KEY, []);
   return all.find((b) => b.id === id) ?? null;
 }
 
-export async function updateBookingStatus(id: string, status: BookingStatus): Promise<Booking> {
+ async function demo_updateBookingStatus(id: string, status: BookingStatus): Promise<Booking> {
   const all = get<Booking[]>(KEY, []);
   const existing = all.find((b) => b.id === id);
   if (!existing) throw new Error(`Booking ${id} not found`);
@@ -68,7 +70,7 @@ export async function updateBookingStatus(id: string, status: BookingStatus): Pr
   return updated;
 }
 
-export async function linkBookingToSubscription(id: string, subscriptionId: string): Promise<Booking> {
+ async function demo_linkBookingToSubscription(id: string, subscriptionId: string): Promise<Booking> {
   const all = get<Booking[]>(KEY, []);
   const existing = all.find((b) => b.id === id);
   if (!existing) throw new Error(`Booking ${id} not found`);
@@ -79,3 +81,12 @@ export async function linkBookingToSubscription(id: string, subscriptionId: stri
   );
   return updated;
 }
+
+// Backend adapters
+export const createBooking: typeof demo_createBooking = (...args) => backendEnabled ? remote("bookings.createBooking", args) : demo_createBooking(...args);
+export const listBookingsForFamily: typeof demo_listBookingsForFamily = (...args) => backendEnabled ? remote("bookings.listBookingsForFamily", args) : demo_listBookingsForFamily(...args);
+export const listBookingsForProvider: typeof demo_listBookingsForProvider = (...args) => backendEnabled ? remote("bookings.listBookingsForProvider", args) : demo_listBookingsForProvider(...args);
+export const listAllBookings: typeof demo_listAllBookings = (...args) => backendEnabled ? remote("bookings.listAllBookings", args) : demo_listAllBookings(...args);
+export const getBooking: typeof demo_getBooking = (...args) => backendEnabled ? remote("bookings.getBooking", args) : demo_getBooking(...args);
+export const updateBookingStatus: typeof demo_updateBookingStatus = (...args) => backendEnabled ? remote("bookings.updateBookingStatus", args) : demo_updateBookingStatus(...args);
+export const linkBookingToSubscription: typeof demo_linkBookingToSubscription = (...args) => backendEnabled ? remote("bookings.linkBookingToSubscription", args) : demo_linkBookingToSubscription(...args);

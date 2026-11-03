@@ -14,8 +14,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       <TriangleAlert className="h-10 w-10 text-danger" strokeWidth={1.5} />
       <h1 className="text-2xl font-semibold text-text-primary">Something went wrong</h1>
       <p className="max-w-sm text-text-secondary">
-        This is a prototype — data lives in your browser&apos;s localStorage, so a reset here won&apos;t lose your
-        demo progress.
+        We couldn’t load this page. Try again, or return to your dashboard. Retrying does not delete saved records.
       </p>
       <Button onClick={reset}>Try again</Button>
     </main>

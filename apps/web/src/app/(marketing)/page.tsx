@@ -1,4 +1,5 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -27,6 +28,7 @@ export default function Home() {
   const [stats, setStats] = useState<{ providers: number; avgRating: number | null; reviews: number } | null>(null);
 
   useEffect(() => {
+    if (backendEnabled) return; // Never present stale browser seed counts as real supply.
     queueMicrotask(() => {
       const providers = get<Provider[]>("providers", []).filter((provider) => provider.verification_status === "approved");
       const reviews = get<Review[]>("reviews", []);

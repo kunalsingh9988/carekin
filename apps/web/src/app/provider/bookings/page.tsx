@@ -1,4 +1,6 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
+import { performBookingAction } from "@/lib/storage/repositories/workspace";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -25,6 +27,7 @@ export default function ProviderBookingsPage() {
   const [recipients, setRecipients] = useState<Record<string, CareRecipient>>({});
   const [paidRequests, setPaidRequests] = useState<Record<string, boolean>>({});
   const [tab, setTab] = useState<Tab>("requests");
+  const [error,setError]=useState("");
 
   async function load(providerId: string) {
     const list = await listBookingsForProvider(providerId);
@@ -43,7 +46,7 @@ export default function ProviderBookingsPage() {
     const paidEntries = await Promise.all(
       list
         .filter((b) => b.status === "requested")
-        .map(async (b) => [b.id, (await getPaymentForBooking(b.id))?.status === "captured"] as const),
+        .map(async (b) => [b.id, backendEnabled || (await getPaymentForBooking(b.id))?.status === "captured"] as const),
     );
     setPaidRequests(Object.fromEntries(paidEntries));
   }
@@ -66,6 +69,11 @@ export default function ProviderBookingsPage() {
   }
 
   async function respond(booking: Booking, accept: boolean) {
+    if (backendEnabled) {
+      try { await performBookingAction(user!,booking.id,accept?"accept":"decline"); await load(provider!.id); }
+      catch(e) { setError(e instanceof Error ? e.message : "Unable to update request."); }
+      return;
+    }
     await updateBookingStatus(booking.id, accept ? "confirmed" : "cancelled");
     await addNotification(
       families[booking.family_id]?.user_id ?? booking.family_id,
@@ -84,6 +92,7 @@ export default function ProviderBookingsPage() {
   return (
     <main className="mx-auto flex max-w-2xl flex-1 flex-col gap-4 px-6 py-8">
       <h1 className="text-2xl font-semibold text-text-primary">Bookings</h1>
+      {error && <p role="alert" className="text-danger">{error}</p>}
 
       <div className="flex gap-2 border-b border-border">
         <TabButton label={`Requests (${requests.length})`} active={tab === "requests"} onClick={() => setTab("requests")} />

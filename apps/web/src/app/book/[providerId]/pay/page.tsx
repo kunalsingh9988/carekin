@@ -1,4 +1,6 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
+import { BackendBookingRequest } from "@/components/booking/BackendBookingRequest";
 
 import { use, useEffect, useState } from "react";
 import { useRouter, notFound } from "next/navigation";
@@ -23,6 +25,10 @@ type PaymentState = "idle" | "processing" | "failed";
 // pendingBooking, which is then cleared. On failure, pendingBooking stays
 // intact so retrying doesn't lose anything (Guardrails).
 export default function BookingPayPage({ params }: { params: Promise<{ providerId: string }> }) {
+  const { providerId } = use(params);
+  return backendEnabled ? <BackendBookingRequest providerId={providerId} /> : <DemoBookingPayPage params={params} />;
+}
+function DemoBookingPayPage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
   const router = useRouter();
   const user = useRequireRole("family");

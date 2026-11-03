@@ -1,3 +1,5 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import type {
   DocumentType,
@@ -53,7 +55,7 @@ function toGuestSafe<T extends Provider>(p: T): Omit<T, "phone" | "latitude" | "
 // Mirrors the real RLS-gated search RPC: verification_status === 'approved'
 // is filtered HERE, inside the data layer, never left to the UI to hide
 // (Guardrails, Section 2/5 — the one rule that must survive unchanged).
-export async function listApprovedProviders(filters: ProviderSearchFilters): Promise<GuestSafeProviderWithDistance[]> {
+ async function demo_listApprovedProviders(filters: ProviderSearchFilters): Promise<GuestSafeProviderWithDistance[]> {
   const radiusKm = filters.radiusKm ?? 10;
   const all = get<Provider[]>(PROVIDERS_KEY, []);
   return all
@@ -67,7 +69,7 @@ export async function listApprovedProviders(filters: ProviderSearchFilters): Pro
 // Guest-safe single-provider lookup for the public `/providers/[slug]` page.
 // Returns null for anything not approved — same gating rule, single-record
 // form (a guest must never see a pending/rejected provider by guessing an id).
-export async function getProviderPublic(id: string): Promise<GuestSafeProvider | null> {
+ async function demo_getProviderPublic(id: string): Promise<GuestSafeProvider | null> {
   const provider = await getProvider(id);
   if (!provider || provider.verification_status !== "approved") return null;
   return toGuestSafe(provider);
@@ -75,17 +77,17 @@ export async function getProviderPublic(id: string): Promise<GuestSafeProvider |
 
 // Full record — for authenticated/internal use only (booking creation,
 // provider's own dashboard, admin). Never returned to a guest-facing page.
-export async function getProvider(id: string): Promise<Provider | null> {
+ async function demo_getProvider(id: string): Promise<Provider | null> {
   const all = get<Provider[]>(PROVIDERS_KEY, []);
   return all.find((p) => p.id === id) ?? null;
 }
 
-export async function getMyProvider(userId: string): Promise<Provider | null> {
+ async function demo_getMyProvider(userId: string): Promise<Provider | null> {
   const all = get<Provider[]>(PROVIDERS_KEY, []);
   return all.find((p) => p.user_id === userId) ?? null;
 }
 
-export async function createProviderProfile(
+ async function demo_createProviderProfile(
   userId: string,
   input: {
     type: ProviderType;
@@ -131,9 +133,9 @@ export async function createProviderProfile(
   return created;
 }
 
-export async function submitDocuments(
+ async function demo_submitDocuments(
   providerId: string,
-  docs: { type: DocumentType; filename: string }[],
+  docs: { type: DocumentType; filename: string; storage_key?: string }[],
 ): Promise<ProviderDocument[]> {
   const all = get<ProviderDocument[]>(DOCUMENTS_KEY, []);
   const now = new Date().toISOString();
@@ -151,15 +153,25 @@ export async function submitDocuments(
   return created;
 }
 
-export async function getDocuments(providerId: string): Promise<ProviderDocument[]> {
+ async function demo_getDocuments(providerId: string): Promise<ProviderDocument[]> {
   const all = get<ProviderDocument[]>(DOCUMENTS_KEY, []);
   return all.filter((d) => d.provider_id === providerId);
 }
 
-export async function getVerificationStatus(
+ async function demo_getVerificationStatus(
   providerId: string,
 ): Promise<{ status: VerificationStatus; reviews: VerificationReview[] }> {
   const provider = await getProvider(providerId);
   const reviews = get<VerificationReview[]>(REVIEWS_KEY, []).filter((r) => r.provider_id === providerId);
   return { status: provider?.verification_status ?? "pending", reviews: reviews.sort((a, b) => a.created_at.localeCompare(b.created_at)) };
 }
+
+// Backend adapters
+export const listApprovedProviders: typeof demo_listApprovedProviders = (...args) => backendEnabled ? remote("providers.listApprovedProviders", args) : demo_listApprovedProviders(...args);
+export const getProviderPublic: typeof demo_getProviderPublic = (...args) => backendEnabled ? remote("providers.getProviderPublic", args) : demo_getProviderPublic(...args);
+export const getProvider: typeof demo_getProvider = (...args) => backendEnabled ? remote("providers.getProvider", args) : demo_getProvider(...args);
+export const getMyProvider: typeof demo_getMyProvider = (...args) => backendEnabled ? remote("providers.getMyProvider", args) : demo_getMyProvider(...args);
+export const createProviderProfile: typeof demo_createProviderProfile = (...args) => backendEnabled ? remote("providers.createProviderProfile", args) : demo_createProviderProfile(...args);
+export const submitDocuments: typeof demo_submitDocuments = (...args) => backendEnabled ? remote("providers.submitDocuments", args) : demo_submitDocuments(...args);
+export const getDocuments: typeof demo_getDocuments = (...args) => backendEnabled ? remote("providers.getDocuments", args) : demo_getDocuments(...args);
+export const getVerificationStatus: typeof demo_getVerificationStatus = (...args) => backendEnabled ? remote("providers.getVerificationStatus", args) : demo_getVerificationStatus(...args);

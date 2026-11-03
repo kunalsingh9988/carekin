@@ -7,6 +7,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { SupportFooter } from "@/components/layout/SupportFooter";
 import { SeedInitializer } from "@/components/SeedInitializer";
 import { THEME_INIT_SCRIPT } from "@/lib/storage/client";
+import { backendEnabled } from "@/lib/backend/config";
 
 // Loaded here so tokens.css's font var references actually resolve to
 // registered @font-faces. Brand pairing B: Bricolage Grotesque for display
@@ -21,7 +22,7 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 
 export const metadata: Metadata = {
   title: { default: "CareKin", template: "%s · CareKin" },
-  description: "Verified elder care and babysitting, close to home. (Prototype — no real backend.)",
+  description: "CareKin elder care and babysitting. Development preview; not open for real care bookings.",
 };
 
 export const viewport: Viewport = {
@@ -48,6 +49,7 @@ export default function RootLayout({
         <SeedInitializer />
         <AuthModalProvider>
           <Navbar />
+          {backendEnabled && <aside className="border-b border-border bg-accent-tint px-4 py-2 text-center text-xs text-text-primary">Development preview · accounts and records are saved securely online. Payments, SMS and emergency dispatch are not connected. Use test data only.</aside>}
           {children}
           <SupportFooter />
           <AuthModal />

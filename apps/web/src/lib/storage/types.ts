@@ -85,6 +85,7 @@ export interface ProviderDocument {
   provider_id: string;
   type: DocumentType;
   filename: string;
+  storage_key?: string;
   status: DocumentStatus;
   uploaded_at: string;
 }

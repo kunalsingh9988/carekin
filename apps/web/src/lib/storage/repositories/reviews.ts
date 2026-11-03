@@ -1,9 +1,11 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import type { Review } from "../types";
 
 const KEY = "reviews";
 
-export async function submitReview(
+ async function demo_submitReview(
   bookingId: string,
   providerId: string,
   rating: number,
@@ -22,18 +24,24 @@ export async function submitReview(
   return created;
 }
 
-export async function getReviewForBooking(bookingId: string): Promise<Review | null> {
+ async function demo_getReviewForBooking(bookingId: string): Promise<Review | null> {
   const all = get<Review[]>(KEY, []);
   return all.find((r) => r.booking_id === bookingId) ?? null;
 }
 
-export async function getReviewsForProvider(providerId: string): Promise<Review[]> {
+ async function demo_getReviewsForProvider(providerId: string): Promise<Review[]> {
   const all = get<Review[]>(KEY, []);
   return all.filter((r) => r.provider_id === providerId).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
-export async function getRatingSummary(providerId: string): Promise<{ avg: number; count: number }> {
+ async function demo_getRatingSummary(providerId: string): Promise<{ avg: number; count: number }> {
   const reviews = await getReviewsForProvider(providerId);
   if (reviews.length === 0) return { avg: 0, count: 0 };
   return { avg: reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length, count: reviews.length };
 }
+
+// Backend adapters
+export const submitReview: typeof demo_submitReview = (...args) => backendEnabled ? remote("reviews.submitReview", args) : demo_submitReview(...args);
+export const getReviewForBooking: typeof demo_getReviewForBooking = (...args) => backendEnabled ? remote("reviews.getReviewForBooking", args) : demo_getReviewForBooking(...args);
+export const getReviewsForProvider: typeof demo_getReviewsForProvider = (...args) => backendEnabled ? remote("reviews.getReviewsForProvider", args) : demo_getReviewsForProvider(...args);
+export const getRatingSummary: typeof demo_getRatingSummary = (...args) => backendEnabled ? remote("reviews.getRatingSummary", args) : demo_getRatingSummary(...args);

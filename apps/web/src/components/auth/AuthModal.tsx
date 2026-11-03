@@ -1,4 +1,6 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
+import { BackendSignIn } from "./BackendSignIn";
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
@@ -18,6 +20,12 @@ type Step = "phone" | "otp";
 // Section 2/8) — any 6-digit code is accepted, and the on-screen note says
 // so explicitly rather than silently auto-passing.
 export function AuthModal() {
+  const { isOpen, close, defaultRole } = useAuthModal();
+  if (!backendEnabled) return <DemoAuthModal />;
+  if (!isOpen) return null;
+  return <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4"><div role="dialog" aria-modal="true" aria-label="Sign in" className="relative w-full max-w-lg rounded-lg bg-surface p-6 pt-16"><button className="absolute right-3 top-3 min-h-tap px-3" onClick={close} aria-label="Close sign in">Close</button><BackendSignIn defaultRole={defaultRole} onDone={close} /></div></div>;
+}
+function DemoAuthModal() {
   const { isOpen, close, defaultRole } = useAuthModal();
   const router = useRouter();
   const dialogRef = useRef<HTMLDivElement>(null);

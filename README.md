@@ -1,11 +1,40 @@
 # CareKin
 
+## Current backend development build — November 2026
+
+`apps/web` now supports a real Supabase development backend with email/password
+authentication, private database records, authorization, document storage,
+booking requests, chat, Active Care, and operations queues. It is **not launch
+ready**: payments, SMS, recurring billing, emergency dispatch and staffed
+provider verification are not connected.
+
+- [Completed work, validation and remaining launch work](apps/web/docs/backend-status.md)
+- [Database installation, security model and administrator setup](packages/supabase/backend/README.md)
+- Frontend: Next.js 16.2.10 / React 19, in `apps/web`.
+- Backend: `packages/supabase/backend/001_core.sql` through `004_hardening.sql`.
+- Set `NEXT_PUBLIC_BACKEND_MODE=supabase` and the project URL/publishable key
+  in ignored `apps/web/.env.local`, using `apps/web/.env.example` as a template.
+- No service-role or secret key is needed by this application.
+- Omitting backend mode preserves the older browser-local demo. Never mistake
+  that demo for authenticated production functionality.
+- Do **not** run the historical `supabase/migrations` or push its local config
+  onto the connected project; they belong to a different archived architecture.
+
+Run `pnpm install`, then `pnpm --filter @carekin/web dev`. The backend directory
+does not seed providers or customer data. An empty search is expected until a
+provider completes onboarding and an authorized administrator approves them.
+
+## Historical prototype documentation
+
+The following describes the preceding browser-only implementation, not the
+Supabase mode above. Its payment tests were simulations, not real transactions.
+
 Two-sided marketplace connecting families with verified elder caregivers and
 babysitters. Single-city launch; the verification-gating rule (a pending or
 rejected provider is never visible to families, guest or authenticated) is
 the one thing that has survived every architecture pivot below unchanged.
 
-**Current build: frontend-only prototype**, per the "CareKin Full Website
+**Previous build: frontend-only prototype**, per the "CareKin Full Website
 Build Prompt" — guest browsing → signup-at-commitment funnel, no backend, no
 real auth, no real payments. Every "write" persists to browser
 `localStorage` through a typed data-access layer

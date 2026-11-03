@@ -1,4 +1,6 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
+import { supabaseBrowser } from "@/lib/backend/browser";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,6 +26,20 @@ export default function DocumentUploadPage() {
   const router = useRouter();
   const [provider, setProvider] = useState<Provider | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [newDocuments, setNewDocuments] = useState<{ type: DocumentType; filename: string; storage_key: string }[]>([]);
+  async function upload(type: DocumentType, file?: File) {
+    if (!file || !user) return;
+    setError(""); setSubmitting(true);
+    try {
+      if (file.size > 5 * 1024 * 1024 || !["application/pdf", "image/jpeg", "image/png"].includes(file.type)) throw new Error("Choose a PDF, JPG or PNG up to 5 MB.");
+      const storage_key = `${user.id}/${crypto.randomUUID()}.${file.type === "application/pdf" ? "pdf" : file.type === "image/png" ? "png" : "jpg"}`;
+      const { error } = await supabaseBrowser().storage.from("carekin-documents").upload(storage_key, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      setNewDocuments(previous => [...previous.filter(d => d.type !== type), { type, filename: file.name, storage_key }]);
+      setUploaded(previous => ({ ...previous, [type]: file.name }));
+    } catch(e) { setError(e instanceof Error ? e.message : "Upload failed."); } finally { setSubmitting(false); }
+  }
   const [uploaded, setUploaded] = useState<Record<DocumentType, string | null>>({
     id_proof: null,
     address_proof: null,
@@ -49,6 +65,12 @@ export default function DocumentUploadPage() {
   async function handleFinish() {
     if (!provider || submitting || !uploaded.id_proof || !uploaded.address_proof) return;
     setSubmitting(true);
+    if (backendEnabled) {
+      try { if(newDocuments.length) await submitDocuments(provider.id,newDocuments); router.push("/provider/verification-status"); }
+      catch(e) { setError(e instanceof Error ? e.message : "Unable to submit documents."); }
+      finally { setSubmitting(false); }
+      return;
+    }
     const docs = (Object.entries(uploaded) as [DocumentType, string | null][])
       .filter(([, filename]) => filename)
       .map(([type, filename]) => ({ type, filename: filename! }));
@@ -66,7 +88,7 @@ export default function DocumentUploadPage() {
       </div>
 
       <p className="demo-note rounded-md px-3 py-2 text-xs">
-        Demo mode: this just records a filename, no real file is uploaded anywhere.
+        {backendEnabled ? "Files are saved in private storage. Only you and authorized operations administrators can access them. Use sample documents during development; background checking is not automated." : "Demo mode: this just records a filename, no real file is uploaded anywhere."}
       </p>
 
       <div className="flex flex-col gap-3">
@@ -79,9 +101,9 @@ export default function DocumentUploadPage() {
                 {uploaded[doc.type] && <p className="break-all text-xs font-medium text-verified">{uploaded[doc.type]} uploaded</p>}
               </div>
             </div>
-            <Button variant="secondary" onClick={() => handleSimulatedUpload(doc.type)} className="shrink-0">
+            {backendEnabled ? <label className="grid gap-2 text-sm">Choose document<input type="file" accept=".pdf,.jpg,.jpeg,.png" disabled={submitting} onChange={e => void upload(doc.type,e.target.files?.[0])} /></label> : <Button variant="secondary" onClick={() => handleSimulatedUpload(doc.type)} className="shrink-0">
               <Upload className="h-4 w-4" /> {uploaded[doc.type] ? "Replace" : "Upload"}
-            </Button>
+            </Button>}
           </Card>
         ))}
       </div>
@@ -89,6 +111,7 @@ export default function DocumentUploadPage() {
       <Button onClick={handleFinish} disabled={!requiredDone || !provider || submitting} fullWidth>
         {submitting ? "Submitting…" : "Submit for review"}
       </Button>
+      {error && <p role="alert" className="text-danger">{error}</p>}
     </OnboardingFrame>
   );
 }

@@ -1,4 +1,6 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
+import { BackendSignIn } from "@/components/auth/BackendSignIn";
 
 import { use, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, notFound } from "next/navigation";
@@ -148,6 +150,7 @@ function SignupForm({ providerId }: { providerId: string }) {
 
 export default function BookingSignupPage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
+  if (backendEnabled) return <main className="mx-auto w-full max-w-lg px-6 py-12"><BackendSignIn next={`/book/${providerId}/profile`} /></main>;
   return (
     <Suspense>
       <SignupForm providerId={providerId} />

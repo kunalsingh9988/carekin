@@ -1,10 +1,10 @@
-// Lightweight "current user" concept — NOT real authentication (Guardrails,
-// Section 3/8). Synchronous and separate from the async repository pattern
-// in lib/storage/repositories on purpose: this is session state, not
-// domain data that would come from a real backend later.
+// Backend mode derives identity from Supabase Auth and the private account role.
+// The local/demo session implementation is retained only for explicit demo mode.
 import { useSyncExternalStore } from "react";
 import { get, newId, set, remove } from "../storage/client";
 import type { CurrentUser, UserRole } from "../storage/types";
+import { backendEnabled } from "../backend/config";
+import { remote, supabaseBrowser } from "../backend/browser";
 
 const KEY = "currentUser";
 const STORAGE_EVENT_KEY = `carekin:${KEY}`;
@@ -23,6 +23,7 @@ const listeners = new Set<(user: CurrentUser | null) => void>();
 let cachedUser: CurrentUser | null | undefined;
 
 function readUser(): CurrentUser | null {
+  if (backendEnabled) return cachedUser ?? null;
   if (cachedUser === undefined) cachedUser = get<CurrentUser | null>(KEY, null);
   return cachedUser;
 }
@@ -64,6 +65,7 @@ export function getCurrentUser(): CurrentUser | null {
 // an admin identity side by side, and logging back into an existing pair
 // reuses the same id so seeded data keeps lining up.
 export function loginAsRole(phone: string, role: UserRole): CurrentUser {
+  if (backendEnabled) throw new Error("Sign in with your Supabase account.");
   const existing = get<Record<string, CurrentUser>>("usersByPhone", {});
   const key = `${phone}:${role}`;
   const user = existing[key] ?? { id: newId(), role, phone, created_at: new Date().toISOString() };
@@ -75,6 +77,10 @@ export function loginAsRole(phone: string, role: UserRole): CurrentUser {
 }
 
 export function logout(): void {
+  if (backendEnabled) {
+    void supabaseBrowser().auth.signOut().then(() => { commitUser(null); window.location.assign("/"); });
+    return;
+  }
   remove(KEY);
   commitUser(null);
 }
@@ -95,8 +101,27 @@ export function isDemoUser(user: CurrentUser | null): boolean {
 }
 
 export function loginAsDemo(role: UserRole): CurrentUser {
+  if (backendEnabled) throw new Error("Demo role switching is disabled in backend mode.");
   const user = DEMO_USERS[role];
   set(KEY, user);
   commitUser(user);
   return user;
+}
+
+export async function refreshCurrentUser(): Promise<CurrentUser | null> {
+  if (!backendEnabled) return getCurrentUser();
+  const { data: { user } } = await supabaseBrowser().auth.getUser();
+  const current = user ? await remote<CurrentUser | null>("auth.me") : null;
+  commitUser(current);
+  return current;
+}
+
+export function initializeBackendAuth() {
+  if (!backendEnabled) return () => {};
+  void refreshCurrentUser().catch(() => commitUser(null));
+  const { data } = supabaseBrowser().auth.onAuthStateChange(() => {
+    // Avoid awaiting Supabase calls inside its synchronous auth callback.
+    setTimeout(() => { void refreshCurrentUser().catch(() => commitUser(null)); }, 0);
+  });
+  return () => data.subscription.unsubscribe();
 }

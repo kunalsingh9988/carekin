@@ -1,3 +1,5 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import type { Booking, FamilyProfile, Provider, Subscription, SubscriptionStatus, CurrentUser } from "../types";
 import { getPaymentForBooking } from "./payments";
@@ -7,16 +9,16 @@ export interface AvailabilityDay { day: number; enabled: boolean; start: string;
 export interface SupportDraft { id: string; name: string; email: string; topic: string; message: string; created_at: string }
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-export async function getAvailability(providerId: string): Promise<AvailabilityDay[]> {
+ async function demo_getAvailability(providerId: string): Promise<AvailabilityDay[]> {
   return get<Record<string, AvailabilityDay[]>>("availability", {})[providerId] ?? Array.from({ length: 7 }, (_, day) => ({ day, enabled: false, start: "09:00", end: "17:00" }));
 }
-export async function saveAvailability(userId: string, providerId: string, days: AvailabilityDay[]) {
+ async function demo_saveAvailability(userId: string, providerId: string, days: AvailabilityDay[]) {
   const provider = get<Provider[]>("providers", []).find((p) => p.id === providerId && p.user_id === userId);
   if (!provider) throw new Error("This provider profile is not yours.");
   if (days.length !== 7 || new Set(days.map((d) => d.day)).size !== 7 || days.some((d) => !Number.isInteger(d.day) || d.day < 0 || d.day > 6 || !TIME.test(d.start) || !TIME.test(d.end) || (d.enabled && d.start >= d.end))) throw new Error("Choose seven unique days and an end time after the start time.");
   set("availability", { ...get<Record<string, AvailabilityDay[]>>("availability", {}), [providerId]: days });
 }
-export async function updatePublicProfile(userId: string, input: { name: string; bio: string; radius: number }) {
+ async function demo_updatePublicProfile(userId: string, input: { name: string; bio: string; radius: number }) {
   if (!input.name.trim() || input.name.trim().length > 100 || input.bio.length > 1200 || !Number.isFinite(input.radius) || input.radius < 1 || input.radius > 50) throw new Error("Add a name, a bio under 1,200 characters and a service radius from 1–50 km.");
   const providers = get<Provider[]>("providers", []);
   const current = providers.find((p) => p.user_id === userId);
@@ -25,7 +27,7 @@ export async function updatePublicProfile(userId: string, input: { name: string;
   set("providers", providers.map((p) => p.id === current.id ? updated : p));
   return updated;
 }
-export async function changePlanStatus(userId: string, planId: string, status: SubscriptionStatus) {
+ async function demo_changePlanStatus(userId: string, planId: string, status: SubscriptionStatus) {
   const family = get<FamilyProfile[]>("families", []).find((f) => f.user_id === userId);
   const plans = get<Subscription[]>("subscriptions", []);
   const plan = plans.find((p) => p.id === planId && p.family_id === family?.id);
@@ -36,7 +38,7 @@ export async function changePlanStatus(userId: string, planId: string, status: S
   set("subscriptions", plans.map((p) => p.id === planId ? updated : p));
   return updated;
 }
-export async function rescheduleBooking(userId: string, bookingId: string, scheduledAt: string) {
+ async function demo_rescheduleBooking(userId: string, bookingId: string, scheduledAt: string) {
   const family = get<FamilyProfile[]>("families", []).find((f) => f.user_id === userId);
   const bookings = get<Booking[]>("bookings", []);
   const booking = bookings.find((b) => b.id === bookingId && b.family_id === family?.id);
@@ -49,13 +51,13 @@ export async function rescheduleBooking(userId: string, bookingId: string, sched
   set("bookings", bookings.map((b) => b.id === bookingId ? updated : b));
   return updated;
 }
-export async function saveSupportDraft(input: Omit<SupportDraft, "id" | "created_at">) {
+ async function demo_saveSupportDraft(input: Omit<SupportDraft, "id" | "created_at">) {
   if (!input.name.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email) || input.message.trim().length < 10 || input.message.length > 2000) throw new Error("Enter your name, a valid email and a message of 10–2,000 characters.");
   const draft = { ...input, id: newId(), created_at: new Date().toISOString() };
   set("supportDrafts", [...get<SupportDraft[]>("supportDrafts", []), draft]);
   return draft;
 }
-export async function listWorkspaceUsers() {
+ async function demo_listWorkspaceUsers() {
   const families = get<FamilyProfile[]>("families", []), providers = get<Provider[]>("providers", []);
   const accounts = Object.values(get<Record<string, CurrentUser>>("usersByPhone", {}));
   const profiles = [
@@ -65,7 +67,7 @@ export async function listWorkspaceUsers() {
   return [...profiles, ...accounts.filter((a) => !profiles.some((p) => p.id === a.id)).map((a) => ({ id: a.id, name: a.phone, role: a.role, detail: "Profile not completed", href: null as string | null }))];
 }
 
-export async function performBookingAction(user: CurrentUser, bookingId: string, action: "accept" | "decline" | "start" | "complete" | "cancel") {
+ async function demo_performBookingAction(user: CurrentUser, bookingId: string, action: "accept" | "decline" | "start" | "complete" | "cancel") {
   if (!["admin", "provider"].includes(user.role)) throw new Error("This action is not available for your role.");
   const bookings = get<Booking[]>("bookings", []);
   const booking = bookings.find((b) => b.id === bookingId);
@@ -82,3 +84,13 @@ export async function performBookingAction(user: CurrentUser, bookingId: string,
   if (action === "complete") await ensurePayoutForCompletedBooking(updated);
   return updated;
 }
+
+// Backend adapters
+export const getAvailability: typeof demo_getAvailability = (...args) => backendEnabled ? remote("workspace.getAvailability", args) : demo_getAvailability(...args);
+export const saveAvailability: typeof demo_saveAvailability = (...args) => backendEnabled ? remote("workspace.saveAvailability", args) : demo_saveAvailability(...args);
+export const updatePublicProfile: typeof demo_updatePublicProfile = (...args) => backendEnabled ? remote("workspace.updatePublicProfile", args) : demo_updatePublicProfile(...args);
+export const changePlanStatus: typeof demo_changePlanStatus = (...args) => backendEnabled ? remote("workspace.changePlanStatus", args) : demo_changePlanStatus(...args);
+export const rescheduleBooking: typeof demo_rescheduleBooking = (...args) => backendEnabled ? remote("workspace.rescheduleBooking", args) : demo_rescheduleBooking(...args);
+export const saveSupportDraft: typeof demo_saveSupportDraft = (...args) => backendEnabled ? remote("workspace.saveSupportDraft", args) : demo_saveSupportDraft(...args);
+export const listWorkspaceUsers: typeof demo_listWorkspaceUsers = (...args) => backendEnabled ? remote("workspace.listWorkspaceUsers", args) : demo_listWorkspaceUsers(...args);
+export const performBookingAction: typeof demo_performBookingAction = (...args) => backendEnabled ? remote("workspace.performBookingAction", args) : demo_performBookingAction(...args);

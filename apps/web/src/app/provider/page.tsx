@@ -1,4 +1,5 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -61,7 +62,7 @@ export default function ProviderDashboardPage() {
       const paidEntries = await Promise.all(
         list
           .filter((b) => b.status === "requested")
-          .map(async (b) => [b.id, (await getPaymentForBooking(b.id))?.status === "captured"] as const),
+          .map(async (b) => [b.id, backendEnabled || (await getPaymentForBooking(b.id))?.status === "captured"] as const),
       );
       setPaidRequests(Object.fromEntries(paidEntries));
     });

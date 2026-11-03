@@ -1,4 +1,5 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
 
 import { useEffect, useState } from "react";
 import { Wallet } from "lucide-react";
@@ -42,8 +43,8 @@ export default function AdminPayoutsPage() {
     <main className="mx-auto flex max-w-3xl flex-1 flex-col gap-6 px-6 py-12">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold text-text-primary">Payouts</h1>
-        <Button onClick={handleRun} disabled={running || pendingCount === 0}>
-          {running ? "Running…" : `Simulate payout run (${pendingCount} pending)`}
+        <Button onClick={handleRun} disabled={backendEnabled || running || pendingCount === 0}>
+          {backendEnabled ? "Payout service not connected" : running ? "Running…" : `Simulate payout run (${pendingCount} pending)`}
         </Button>
       </div>
 

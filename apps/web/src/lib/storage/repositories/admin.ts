@@ -1,3 +1,5 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import type { Dispute, Provider, VerificationReview } from "../types";
 
@@ -5,7 +7,7 @@ const PROVIDERS_KEY = "providers";
 const REVIEWS_KEY = "verificationReviews";
 const DISPUTES_KEY = "disputes";
 
-export async function listPendingVerifications(): Promise<Provider[]> {
+ async function demo_listPendingVerifications(): Promise<Provider[]> {
   const all = get<Provider[]>(PROVIDERS_KEY, []);
   return all.filter((p) => p.verification_status === "pending").sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
@@ -48,19 +50,19 @@ async function reviewProvider(
 // the real backend's review_verification() RPC — replicated as a business
 // rule here since there's no RLS/security-definer function to enforce it
 // (Guardrails, Section 2/5).
-export async function approveProvider(id: string, reviewedBy: string): Promise<Provider> {
+ async function demo_approveProvider(id: string, reviewedBy: string): Promise<Provider> {
   return reviewProvider(id, "approved", null, reviewedBy);
 }
 
-export async function rejectProvider(id: string, reason: string, reviewedBy: string): Promise<Provider> {
+ async function demo_rejectProvider(id: string, reason: string, reviewedBy: string): Promise<Provider> {
   return reviewProvider(id, "rejected", reason, reviewedBy);
 }
 
-export async function listDisputes(): Promise<Dispute[]> {
+ async function demo_listDisputes(): Promise<Dispute[]> {
   return get<Dispute[]>(DISPUTES_KEY, []).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
-export async function raiseDispute(bookingId: string, raisedBy: string, reason: string): Promise<Dispute> {
+ async function demo_raiseDispute(bookingId: string, raisedBy: string, reason: string): Promise<Dispute> {
   const all = get<Dispute[]>(DISPUTES_KEY, []);
   const created: Dispute = {
     id: newId(),
@@ -76,7 +78,7 @@ export async function raiseDispute(bookingId: string, raisedBy: string, reason: 
   return created;
 }
 
-export async function resolveDispute(id: string, resolutionNotes: string): Promise<Dispute> {
+ async function demo_resolveDispute(id: string, resolutionNotes: string): Promise<Dispute> {
   const all = get<Dispute[]>(DISPUTES_KEY, []);
   const existing = all.find((d) => d.id === id);
   if (!existing) throw new Error(`Dispute ${id} not found`);
@@ -92,3 +94,11 @@ export async function resolveDispute(id: string, resolutionNotes: string): Promi
   );
   return updated;
 }
+
+// Backend adapters
+export const listPendingVerifications: typeof demo_listPendingVerifications = (...args) => backendEnabled ? remote("admin.listPendingVerifications", args) : demo_listPendingVerifications(...args);
+export const approveProvider: typeof demo_approveProvider = (...args) => backendEnabled ? remote("admin.approveProvider", args) : demo_approveProvider(...args);
+export const rejectProvider: typeof demo_rejectProvider = (...args) => backendEnabled ? remote("admin.rejectProvider", args) : demo_rejectProvider(...args);
+export const listDisputes: typeof demo_listDisputes = (...args) => backendEnabled ? remote("admin.listDisputes", args) : demo_listDisputes(...args);
+export const raiseDispute: typeof demo_raiseDispute = (...args) => backendEnabled ? remote("admin.raiseDispute", args) : demo_raiseDispute(...args);
+export const resolveDispute: typeof demo_resolveDispute = (...args) => backendEnabled ? remote("admin.resolveDispute", args) : demo_resolveDispute(...args);

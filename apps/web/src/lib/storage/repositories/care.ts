@@ -1,3 +1,5 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import type { Booking, CurrentUser, FamilyProfile, Provider, CareRecipient, Message, ParentalConsent } from "../types";
 import { addNotification } from "./notifications";
@@ -42,7 +44,7 @@ function persist<T>(key: string, value: T) {
 }
 function saveVisit(visit: CareVisit) { persist("careVisits", { ...readVisits(), [visit.booking_id]: visit }); }
 export function isContactRestricted(bookingId: string) { return !!readVisits()[bookingId]?.contact_restricted || get<Booking[]>("bookings", []).find((b) => b.id === bookingId)?.status === "disputed"; }
-export async function getCareContext(user: CurrentUser, id: string) {
+ async function demo_getCareContext(user: CurrentUser, id: string) {
   const { booking, family, provider } = participant(user, id);
   const recipient = get<CareRecipient[]>("careRecipients", []).find((r) => r.id === booking.care_recipient_id);
   const visit = visitFor(booking);
@@ -55,7 +57,7 @@ export async function getCareContext(user: CurrentUser, id: string) {
   const recipientName = recipient?.name.split(",").at(-1)?.trim().split(" ")[0] || "Care recipient";
   return { booking, visit: { ...safeVisit, arrival_pin: user.role === "family" ? arrival_pin : null, pin_required: !!arrival_pin }, provider: { name: provider.name, type: provider.type, approved: provider.verification_status === "approved" }, familyName: family.name.split(" ")[0], recipientName, recipientType: recipient?.type, address: user.role !== "provider" || (!terminal && (active || shortlyBefore)) ? family.address : null, careNotes: user.role !== "provider" || active ? recipient?.notes ?? null : null, brief: canSeeBrief ? storedBrief : null, myCases: get<SafetyCase[]>("safetyCases", []).filter((c) => c.booking_id === id && c.reporter_id === user.id).map(({ evidence, ...c }) => ({ ...c, preserved_event_count: evidence.timeline.length, preserved_message_count: evidence.messages.length })) };
 }
-export async function saveCareBrief(user: CurrentUser, id: string, brief: CareBrief) {
+ async function demo_saveCareBrief(user: CurrentUser, id: string, brief: CareBrief) {
   const { booking } = participant(user, id);
   if (user.role !== "family") throw new Error("Only the booking family can edit this brief.");
   const recipient = get<CareRecipient[]>("careRecipients", []).find((r) => r.id === booking.care_recipient_id);
@@ -63,13 +65,13 @@ export async function saveCareBrief(user: CurrentUser, id: string, brief: CareBr
   if (brief.contacts.length > 3 || brief.contacts.some((c) => !c.name.trim() || !/^\+?[\d ()-]{7,20}$/.test(c.phone)) || [brief.access, brief.medical, brief.needs, brief.present].some((s) => s.length > 1000)) throw new Error("Add valid contact details and keep each note under 1,000 characters.");
   persist("careBriefs", { ...get<Record<string, CareBrief>>("careBriefs", {}), [id]: brief });
 }
-export async function setArrivalPin(user: CurrentUser, id: string, enabled: boolean) {
+ async function demo_setArrivalPin(user: CurrentUser, id: string, enabled: boolean) {
   const { booking } = participant(user, id); const visit = visitFor(booking);
   if (user.role !== "family" || !["scheduled", "arriving"].includes(visit.phase) || booking.status !== "confirmed") throw new Error("Arrival PIN can only be changed before a confirmed visit starts.");
   visit.arrival_pin = enabled ? String(Math.floor(100000 + Math.random() * 900000)) : null;
   saveVisit(visit);
 }
-export async function careAction(user: CurrentUser, id: string, action: "arriving" | "checkin" | "safe" | "checkout" | "confirm_checkout" | "safe_return" | "task", input = "") {
+ async function demo_careAction(user: CurrentUser, id: string, action: "arriving" | "checkin" | "safe" | "checkout" | "confirm_checkout" | "safe_return" | "task", input = "") {
   const { booking, provider, family } = participant(user, id); const visit = visitFor(booking);
   if (!["family", "provider"].includes(user.role)) throw new Error("Use the participant view for visit actions.");
   const isProvider = user.role === "provider";
@@ -95,7 +97,7 @@ export async function careAction(user: CurrentUser, id: string, action: "arrivin
   }
   saveVisit(visit);
 }
-export async function reportSafetyConcern(user: CurrentUser, id: string, input: { category: string; severity: Severity; narrative: string; interrupt?: boolean }) {
+ async function demo_reportSafetyConcern(user: CurrentUser, id: string, input: { category: string; severity: Severity; narrative: string; interrupt?: boolean }) {
   const { booking } = participant(user, id);
   if (!["family", "provider"].includes(user.role)) throw new Error("Only participants can submit a concern.");
   if (!["emergency", "urgent", "service"].includes(input.severity) || !input.category.trim() || input.category.length > 150 || input.narrative.length > 2000) throw new Error("Choose a concern and keep the description under 2,000 characters.");
@@ -109,8 +111,8 @@ export async function reportSafetyConcern(user: CurrentUser, id: string, input: 
   saveVisit(visit); persist("safetyCases", [created, ...get<SafetyCase[]>("safetyCases", [])]);
   return created;
 }
-export async function listSafetyCases(user: CurrentUser) { if (user.role !== "admin") throw new Error("Admin view required."); return get<SafetyCase[]>("safetyCases", []); }
-export async function updateSafetyCase(user: CurrentUser, id: string, status: SafetyCase["status"], note: string) {
+ async function demo_listSafetyCases(user: CurrentUser) { if (user.role !== "admin") throw new Error("Admin view required."); return get<SafetyCase[]>("safetyCases", []); }
+ async function demo_updateSafetyCase(user: CurrentUser, id: string, status: SafetyCase["status"], note: string) {
   if (user.role !== "admin" || !["new", "triaged", "investigating", "resolved"].includes(status) || !note.trim() || note.length > 1000) throw new Error("Admin access and a case note of 1–1,000 characters are required.");
   const cases = get<SafetyCase[]>("safetyCases", []); const current = cases.find((c) => c.id === id);
   if (!current) throw new Error("Case not found.");
@@ -118,7 +120,17 @@ export async function updateSafetyCase(user: CurrentUser, id: string, status: Sa
   persist("safetyCases", cases.map((c) => c.id === id ? updated : c));
   // Resolution never automatically re-enables contact, changes account access or moves money.
 }
-export async function getSafeReturnFollowups(user: CurrentUser) {
+ async function demo_getSafeReturnFollowups(user: CurrentUser) {
   if (user.role !== "admin") throw new Error("Admin view required.");
   return get<Booking[]>("bookings", []).map((booking) => ({ booking, visit: visitFor(booking) })).filter(({ booking, visit }) => visit.checkin_at && !visit.safe_return_at && Date.now() > Date.parse(booking.scheduled_at) + booking.duration_hours * 3600000 && ["active", "checkout_pending", "checked_out", "interrupted"].includes(visit.phase));
 }
+
+// Backend adapters
+export const getCareContext: typeof demo_getCareContext = (...args) => backendEnabled ? remote("care.getCareContext", args) : demo_getCareContext(...args);
+export const saveCareBrief: typeof demo_saveCareBrief = (...args) => backendEnabled ? remote("care.saveCareBrief", args) : demo_saveCareBrief(...args);
+export const setArrivalPin: typeof demo_setArrivalPin = (...args) => backendEnabled ? remote("care.setArrivalPin", args) : demo_setArrivalPin(...args);
+export const careAction: typeof demo_careAction = (...args) => backendEnabled ? remote("care.careAction", args) : demo_careAction(...args);
+export const reportSafetyConcern: typeof demo_reportSafetyConcern = (...args) => backendEnabled ? remote("care.reportSafetyConcern", args) : demo_reportSafetyConcern(...args);
+export const listSafetyCases: typeof demo_listSafetyCases = (...args) => backendEnabled ? remote("care.listSafetyCases", args) : demo_listSafetyCases(...args);
+export const updateSafetyCase: typeof demo_updateSafetyCase = (...args) => backendEnabled ? remote("care.updateSafetyCase", args) : demo_updateSafetyCase(...args);
+export const getSafeReturnFollowups: typeof demo_getSafeReturnFollowups = (...args) => backendEnabled ? remote("care.getSafeReturnFollowups", args) : demo_getSafeReturnFollowups(...args);

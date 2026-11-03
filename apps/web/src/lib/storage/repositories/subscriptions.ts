@@ -1,3 +1,5 @@
+import { backendEnabled } from "@/lib/backend/config";
+import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import type { Subscription, SubscriptionFrequency } from "../types";
 
@@ -8,7 +10,7 @@ const KEY = "subscriptions";
 // confirmed (Section 6.6). Cancellation/pause mechanics are out of scope
 // for the prototype; the record exists so bookings have something real to
 // reference via `subscription_id`.
-export async function createSubscription(input: {
+ async function demo_createSubscription(input: {
   familyId: string;
   providerId: string;
   frequency: SubscriptionFrequency;
@@ -32,17 +34,17 @@ export async function createSubscription(input: {
   return created;
 }
 
-export async function getSubscription(id: string): Promise<Subscription | null> {
+ async function demo_getSubscription(id: string): Promise<Subscription | null> {
   const all = get<Subscription[]>(KEY, []);
   return all.find((s) => s.id === id) ?? null;
 }
 
-export async function listSubscriptionsForFamily(familyId: string): Promise<Subscription[]> {
+ async function demo_listSubscriptionsForFamily(familyId: string): Promise<Subscription[]> {
   const all = get<Subscription[]>(KEY, []);
   return all.filter((s) => s.family_id === familyId);
 }
 
-export async function cancelSubscription(id: string): Promise<Subscription> {
+ async function demo_cancelSubscription(id: string): Promise<Subscription> {
   const all = get<Subscription[]>(KEY, []);
   const existing = all.find((s) => s.id === id);
   if (!existing) throw new Error(`Subscription ${id} not found`);
@@ -53,3 +55,9 @@ export async function cancelSubscription(id: string): Promise<Subscription> {
   );
   return updated;
 }
+
+// Backend adapters
+export const createSubscription: typeof demo_createSubscription = (...args) => backendEnabled ? remote("subscriptions.createSubscription", args) : demo_createSubscription(...args);
+export const getSubscription: typeof demo_getSubscription = (...args) => backendEnabled ? remote("subscriptions.getSubscription", args) : demo_getSubscription(...args);
+export const listSubscriptionsForFamily: typeof demo_listSubscriptionsForFamily = (...args) => backendEnabled ? remote("subscriptions.listSubscriptionsForFamily", args) : demo_listSubscriptionsForFamily(...args);
+export const cancelSubscription: typeof demo_cancelSubscription = (...args) => backendEnabled ? remote("subscriptions.cancelSubscription", args) : demo_cancelSubscription(...args);

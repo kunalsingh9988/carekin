@@ -1,4 +1,5 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
@@ -29,6 +30,7 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -48,27 +50,29 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
       getProvider(b.provider_id).then(setProvider);
       getCareRecipient(b.care_recipient_id).then(setRecipient);
       getReviewForBooking(b.id).then(setReview);
-    });
+    }).catch(e => setError(e instanceof Error ? e.message : "Unable to load booking."));
   }, [id, user]);
 
   if (!user) return null;
+  if (error) return <main className="mx-auto p-8"><p role="alert" className="text-danger">{error}</p><Link href="/family/bookings">Back to bookings</Link></main>;
   if (booking === null) notFound();
   if (booking === undefined) return null;
 
   async function handleCancelRequest() {
-    const updated = await updateBookingStatus(booking!.id, "cancelled");
-    setBooking(updated);
+    try { const updated = await updateBookingStatus(booking!.id, "cancelled"); setBooking(updated); }
+    catch(e) { setError(e instanceof Error ? e.message : "Unable to cancel."); }
   }
 
   async function handleRaiseDispute(e: React.FormEvent) {
     e.preventDefault();
     if (!disputeReason.trim() || !booking) return;
     setDisputeSubmitting(true);
-    await raiseDispute(booking.id, user!.id, disputeReason.trim());
-    const updated = await updateBookingStatus(booking.id, "disputed");
-    setBooking(updated);
-    setDisputeSubmitting(false);
-    setDisputeOpen(false);
+    try {
+      await raiseDispute(booking.id, user!.id, disputeReason.trim());
+      const updated = backendEnabled ? await getBooking(booking.id) : await updateBookingStatus(booking.id, "disputed");
+      setBooking(updated); setDisputeOpen(false);
+    } catch(e) { setError(e instanceof Error ? e.message : "Unable to record dispute."); }
+    finally { setDisputeSubmitting(false); }
   }
 
   return (
@@ -102,7 +106,7 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
 
       {booking.status === "requested" && (
         <div className="flex flex-col gap-2">
-          <p className="text-center text-sm text-text-secondary">This request isn&apos;t paid yet — payment didn&apos;t complete.</p>
+          <p className="text-center text-sm text-text-secondary">{backendEnabled ? "Unpaid development request. Waiting for the provider to accept." : "This request isn’t paid yet — payment didn’t complete."}</p>
           <Button variant="secondary" onClick={handleCancelRequest} fullWidth>
             Cancel this request
           </Button>

@@ -1,4 +1,5 @@
 "use client";
+import { backendEnabled } from "@/lib/backend/config";
 
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -52,6 +53,7 @@ export default function RebookPage({ params }: { params: Promise<{ id: string }>
   if (!user || original === undefined) return null;
   if (original === null) return null; // redirected above
   if (!provider || !recipient) return null;
+  if (backendEnabled) return <main className="mx-auto flex w-full max-w-lg flex-col gap-5 px-6 py-12"><h1 className="text-2xl font-semibold">Book {provider.name} again</h1><p>Choose the new date and time. Availability and the current quote are checked when you submit the request.</p><Link href={`/book/${provider.id}`} className="min-h-tap rounded-md bg-accent px-4 py-3 text-center text-white">Choose your next visit</Link></main>;
 
   function nextAvailableDate(): string {
     const d = new Date();

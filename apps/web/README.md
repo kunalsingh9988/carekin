@@ -1,4 +1,18 @@
-# CareKin — frontend-only prototype
+# CareKin web
+
+## Supabase backend mode
+
+The current development branch adds real cloud authentication and persistence.
+Read [backend status](docs/backend-status.md) and the
+[database setup guide](../../packages/supabase/backend/README.md) first.
+Use `.env.example` to configure ignored `.env.local`; no privileged key is used.
+Email/password replaces demo OTP, provider documents use a private bucket,
+and single-visit requests are unpaid development bookings. Recurring billing,
+SMS, payouts and emergency response remain disabled.
+
+The sections below document the **legacy demo mode** only. They do not describe
+the Supabase authentication or authorization boundary. The demo remains useful
+for visual review, but is never a fallback when a backend request fails.
 
 ## Frontend completion extension
 
