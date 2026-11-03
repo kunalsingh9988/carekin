@@ -4,6 +4,10 @@
 
 const PREFIX = "carekin:";
 
+// Runs before the first paint so a saved dark choice never flashes light.
+// Keep browser-storage access here alongside the rest of the data layer.
+export const THEME_INIT_SCRIPT = `try { var theme = JSON.parse(localStorage.getItem('carekin:theme')); document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light'; } catch (_) { document.documentElement.dataset.theme = 'light'; }`;
+
 function isBrowser(): boolean {
   return typeof window !== "undefined";
 }

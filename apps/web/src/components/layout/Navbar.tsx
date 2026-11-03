@@ -9,6 +9,7 @@ import type { CurrentUser } from "@/lib/storage/types";
 import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { LanguageToggle } from "./LanguageToggle";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 
 // /search is public (Section 5.1) — always shown, not gated behind login.
 const PUBLIC_LINKS = [
@@ -58,13 +59,13 @@ export function Navbar() {
   const links = !user ? PUBLIC_LINKS : user.role === "family" ? [PUBLIC_LINKS[0], ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-surface/95 px-6 py-3 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-border/80 bg-surface/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="text-lg font-bold tracking-[-0.03em] text-text-primary">
             Care<span className="text-accent">Kin</span>
           </Link>
-          <nav className="hidden items-center gap-5 md:flex">
+          <nav className="hidden items-center gap-5 lg:flex">
             {links.map((link) => (
               <Link key={link.href} href={link.href} className="text-sm font-medium text-text-secondary">
                 {link.label}
@@ -73,12 +74,13 @@ export function Navbar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          <LanguageToggle />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+          <div className="hidden sm:block"><LanguageToggle /></div>
           {user ? (
             <>
               {isDemoUser(user) && (
-                <span className="rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-text-secondary">
+                <span className="hidden rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-text-secondary sm:inline-flex">
                   Demo
                 </span>
               )}
@@ -95,7 +97,7 @@ export function Navbar() {
           {!user && <Link href="/search" className="hidden min-h-tap items-center gap-1.5 rounded-lg bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-text sm:inline-flex">Find care <ArrowRight className="h-4 w-4" /></Link>}
           <button
             onClick={() => setMenuOpen((o) => !o)}
-            className="flex min-h-tap min-w-tap items-center justify-center md:hidden"
+            className="flex min-h-tap min-w-tap items-center justify-center lg:hidden"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
           >
@@ -105,7 +107,8 @@ export function Navbar() {
       </div>
 
       {menuOpen && (
-        <nav className="mt-3 flex flex-col gap-1 border-t border-border pt-3 md:hidden">
+        <nav className="mt-3 flex flex-col gap-1 border-t border-border pt-3 lg:hidden">
+          <div className="sm:hidden"><LanguageToggle /></div>
           {links.map((link) => (
             <Link
               key={link.href}

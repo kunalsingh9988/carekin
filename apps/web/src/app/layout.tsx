@@ -5,6 +5,7 @@ import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { Navbar } from "@/components/layout/Navbar";
 import { SeedInitializer } from "@/components/SeedInitializer";
+import { THEME_INIT_SCRIPT } from "@/lib/storage/client";
 
 // Loaded here so tokens.css's font var references actually resolve to
 // registered @font-faces. Brand pairing B: Bricolage Grotesque for display
@@ -30,8 +31,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="light"
+      suppressHydrationWarning
       className={`${bricolageGrotesque.variable} ${figtree.variable} ${notoSansDevanagari.variable} h-full antialiased`}
     >
+      <head><script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} /></head>
       <body className="flex min-h-full flex-col bg-bg-canvas text-text-primary">
         <SeedInitializer />
         <AuthModalProvider>

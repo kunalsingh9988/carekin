@@ -17,6 +17,12 @@ are the source of truth for values.
 
 ## Colour
 
+Light is the default regardless of the device appearance. The header theme
+switch selects Light or Dark; the saved browser preference is applied before
+the first paint and persists across navigation and reloads. Native form
+controls follow the selected color scheme. Homepage hero bands use semantic
+surfaces so they switch along with the rest of the application.
+
 | Role | Value | Rule |
 |---|---|---|
 | Paper | `#FFFFFF` | page + card ground (55%) |

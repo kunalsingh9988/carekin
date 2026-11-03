@@ -74,6 +74,9 @@ body {
   font-family: var(--font-body-latin);
 }
 
+:root { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
 /* Browser surfaces belong to the design system too: violet selection,
  * violet focus ring, tabular figures in numbers. */
 ::selection {
