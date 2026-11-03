@@ -5,6 +5,7 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getMyProvider } from "@/lib/storage/repositories/providers";
 import type { Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LinkButton } from "@/components/ui/Button";
 import { VerificationChip } from "@/components/verification/VerificationChip";
 
 export default function ProviderSettingsPage() {
@@ -21,6 +22,8 @@ export default function ProviderSettingsPage() {
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
       <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
+      <LinkButton href="/provider/profile" variant="secondary">Edit public profile and service area</LinkButton>
+      <LinkButton href="/provider/availability" variant="secondary">Manage weekly availability</LinkButton>
 
       {provider ? (
         <Card className="flex flex-col gap-2">

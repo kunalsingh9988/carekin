@@ -51,8 +51,7 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
       }
       setPending(existing);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providerId]);
+  }, [providerId, user, router]);
 
   if (provider === null) notFound();
   if (!user || provider === undefined || !pending) return null;

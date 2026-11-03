@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { approveProvider, listPendingVerifications, rejectProvider } from "@/lib/storage/repositories/admin";
@@ -62,6 +63,7 @@ export default function VerificationQueuePage() {
           {pending.map((p) => (
             <li key={p.id}>
               <Card className="flex flex-col gap-3">
+                <Link href={`/admin/providers/${p.id}`} className="min-h-tap py-3 text-sm font-semibold text-accent-text">Open full provider review →</Link>
                 <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
                   <div className="min-w-0">
                     <p className="font-medium text-text-primary">

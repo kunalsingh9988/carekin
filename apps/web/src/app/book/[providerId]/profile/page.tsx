@@ -54,8 +54,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
         fetchLocation();
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providerId]);
+  }, [providerId, user, router, fetchLocation]);
 
   if (provider === null) notFound();
   if (!user || provider === undefined) return null;

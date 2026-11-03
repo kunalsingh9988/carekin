@@ -12,6 +12,8 @@ build/
 .env.*.local
 .DS_Store
 coverage/
+# Local visual-verification captures (not application assets)
+.impeccable/review/
 *.log
 npm-debug.log*
 pnpm-debug.log*

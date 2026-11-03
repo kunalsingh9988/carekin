@@ -108,6 +108,7 @@ export default function ProviderBookingsPage() {
         <div className="flex flex-col gap-3">
           {visible.map((b) => (
             <Card key={b.id} className="flex flex-col gap-2">
+              <Link href={`/provider/bookings/${b.id}`} className="min-h-tap py-3 text-sm font-semibold text-accent-text">Visit details →</Link>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-text-primary">{families[b.family_id]?.name ?? "Family"}</p>

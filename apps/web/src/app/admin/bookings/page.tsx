@@ -8,6 +8,7 @@ import { getFamilyProfileById } from "@/lib/storage/repositories/families";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import type { Booking, FamilyProfile, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
 
@@ -50,6 +51,7 @@ export default function AdminBookingsPage() {
                 </p>
               </div>
               <BookingStatusBadge status={b.status} />
+              <LinkButton href={`/admin/bookings/${b.id}`} variant="secondary">Manage booking</LinkButton>
             </Card>
           ))}
         </div>

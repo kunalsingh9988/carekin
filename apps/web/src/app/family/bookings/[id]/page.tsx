@@ -88,6 +88,9 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
         {booking.type === "subscription" && <Row label="Plan" value="Weekly plan" />}
       </Card>
 
+      {["requested", "confirmed"].includes(booking.status) && <LinkButton href={`/family/bookings/${booking.id}/reschedule`} variant="secondary" fullWidth>Reschedule this visit</LinkButton>}
+      {booking.subscription_id && <LinkButton href={`/family/plans/${booking.subscription_id}`} variant="secondary" fullWidth>Manage care plan</LinkButton>}
+
       {CHAT_UNLOCKED.includes(booking.status) ? (
         <LinkButton href={`/family/bookings/${booking.id}/chat`} variant="secondary" fullWidth>
           <MessageCircle className="h-4 w-4" /> Open chat

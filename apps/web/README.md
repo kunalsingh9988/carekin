@@ -1,5 +1,15 @@
 # CareKin — frontend-only prototype
 
+## Frontend completion extension
+
+The web app now contains 52 page templates, including searchable help, local
+support drafts, clearly marked policy drafts, family plan management and visit
+rescheduling, provider availability/profile editing and booking details, plus
+admin people/provider/booking detail screens. See
+[the route inventory and functional boundaries](docs/frontend-completion.md).
+These additions remain demo-only; they do not implement real support delivery,
+recurring billing, real availability, account administration or verification.
+
 Per the "CareKin Full Website Build Prompt": guest browsing → signup-at-
 commitment funnel. No backend, no real auth, no real payments — every
 "write" persists to browser `localStorage` through a typed data-access

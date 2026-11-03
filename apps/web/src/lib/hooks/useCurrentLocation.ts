@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 // Koramangala, Bengaluru — used as a same-neighborhood fallback so the
 // "Use my location" button always produces something plausible even when
@@ -12,7 +12,7 @@ export function useCurrentLocation() {
   const [loading, setLoading] = useState(false);
   const [usedFallback, setUsedFallback] = useState(false);
 
-  function fetchLocation() {
+  const fetchLocation = useCallback(() => {
     setLoading(true);
     setUsedFallback(false);
     if (!("geolocation" in navigator)) {
@@ -33,7 +33,7 @@ export function useCurrentLocation() {
       },
       { timeout: 5000 },
     );
-  }
+  }, []);
 
   return { coords, loading, usedFallback, fetchLocation };
 }

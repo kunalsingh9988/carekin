@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { Navbar } from "@/components/layout/Navbar";
+import { SupportFooter } from "@/components/layout/SupportFooter";
 import { SeedInitializer } from "@/components/SeedInitializer";
 import { THEME_INIT_SCRIPT } from "@/lib/storage/client";
 
@@ -48,6 +49,7 @@ export default function RootLayout({
         <AuthModalProvider>
           <Navbar />
           {children}
+          <SupportFooter />
           <AuthModal />
         </AuthModalProvider>
       </body>
