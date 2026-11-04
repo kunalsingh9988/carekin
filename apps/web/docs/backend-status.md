@@ -16,7 +16,7 @@ real provider verification, review or financial history.
 
 | Area | Implemented behavior |
 | --- | --- |
-| Authentication | Real email/password sign-in and signup, Google OAuth initiation and PKCE callback, confirmation resend, password recovery/reset UI, cookie-session refresh and logout. Google currently blocked by its external redirect configuration (see below). Demo login/role switching disabled in backend mode. |
+| Authentication | Real email/password sign-in and signup, Google OAuth initiation and PKCE callback, confirmation resend, password recovery/reset UI, cookie-session refresh and logout. Google callback registration is corrected; its invalid client secret still needs replacement (see below). Demo login/role switching disabled in backend mode. |
 | Authorization | Private account roles, protected routes, database-enforced ownership checks and role gates; no public administrator signup. |
 | Families | Persistent profiles, elder/child recipients, recorded guardian checkbox consent and consent withdrawal with upcoming-visit cancellation/contact restriction. |
 | Providers | Persistent applications, editable public profile, weekly availability, pending/approved/rejected state and verification history. |
@@ -118,25 +118,30 @@ for the verified deployment result.
 
 - Email and Google are enabled in the live Supabase project's public Auth
   settings; phone is disabled. Backend-mode login does not request phone OTP.
-- Browser testing of the Google button reached Google but returned HTTP 400
-  `redirect_uri_mismatch`. In Google Cloud / Google Auth Platform / Clients,
-  edit the web OAuth client configured in Supabase and add this exact
-  **Authorized redirect URI**:
-  `https://hjoektofktwvdlgptcrk.supabase.co/auth/v1/callback`.
-  This is Google's redirect to Supabase, not the application's callback URL.
-- In Supabase Authentication / URL Configuration, set Site URL to the chosen
-  CareKin environment and allow its `/auth/callback` URL with query parameters
-  (for example the trusted environment's `/auth/callback**` entry). For local
-  development the app runs at `http://localhost:3100`. Keep production and
-  preview origins explicit; do not permit arbitrary domains. This configuration
-  has not been verified or changed in this update; the earlier localhost:3000
-  confirmation redirect needs owner review.
+- The Google OAuth client was configured for the separate Fill-it-up project.
+  Added CareKin's authorized redirect URI
+  `https://hjoektofktwvdlgptcrk.supabase.co/auth/v1/callback` and JavaScript origin
+  `https://carekin-web.vercel.app`, preserving the existing Fill-it-up entries.
+  Google Cloud confirmed the save; the live Google button now reaches account
+  selection instead of `redirect_uri_mismatch`.
+- Corrected Supabase's Site URL from `http://localhost:3000` to
+  `https://carekin-web.vercel.app` and added the production callback allowlist
+  `https://carekin-web.vercel.app/auth/callback**`. Supabase confirmed both saves.
+  Local development and Vercel previews need their own explicit callback entries
+  before OAuth/email links are tested on those origins.
+- Continuing the live Google flow exposed a second configuration fault. The
+  Supabase Auth log at 23:05:53 India time reported
+  `oauth2: "invalid_client" "The provided client secret is invalid."`.
+  Google no longer allows retrieving this client's existing secret. The owner
+  must add a secret and enter it directly in Supabase's Google provider settings;
+  retain the old Google secret because another application shares this client.
+  Never commit, log or send the replacement secret in chat.
 - New Google users choose family/provider after their first successful login;
   existing users retain their database role. A URL hint never grants admin.
 - The callback preserves safe internal booking destinations and routes expired
   or cancelled links back to a recovery-capable sign-in screen. It is not cached.
-- A complete Google account sign-in is **not verified** until the owner fixes
-  Google Cloud settings and tests the consent/return flow. Built-in email
+- A complete Google account sign-in is **not verified** until the client secret
+  is corrected and the consent/return flow passes. Built-in email
   delivery restrictions still apply; arbitrary public email signup requires a
   configured mail sender. Google sign-in does not use that SMTP service.
 - Main-site promotion was explicitly approved by the owner, including replacing
