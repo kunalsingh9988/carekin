@@ -20,10 +20,28 @@ type Step = "phone" | "otp";
 // Section 2/8) — any 6-digit code is accepted, and the on-screen note says
 // so explicitly rather than silently auto-passing.
 export function AuthModal() {
+  return backendEnabled ? <BackendAuthModal /> : <DemoAuthModal />;
+}
+function BackendAuthModal() {
   const { isOpen, close, defaultRole } = useAuthModal();
-  if (!backendEnabled) return <DemoAuthModal />;
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    dialogRef.current?.querySelector<HTMLElement>("button")?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") close();
+      if (event.key !== "Tab") return;
+      const controls = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href], select:not(:disabled)') ?? []);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => { window.removeEventListener("keydown", onKeyDown); previous?.focus(); };
+  }, [isOpen, close]);
   if (!isOpen) return null;
-  return <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4"><div role="dialog" aria-modal="true" aria-label="Sign in" className="relative w-full max-w-lg rounded-lg bg-surface p-6 pt-16"><button className="absolute right-3 top-3 min-h-tap px-3" onClick={close} aria-label="Close sign in">Close</button><BackendSignIn defaultRole={defaultRole} onDone={close} /></div></div>;
+  return <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4"><div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Sign in" className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-lg bg-surface p-6 pt-16"><button className="absolute right-3 top-3 min-h-tap px-3" onClick={close} aria-label="Close sign in">Close</button><BackendSignIn defaultRole={defaultRole} onDone={close} /></div></div>;
 }
 function DemoAuthModal() {
   const { isOpen, close, defaultRole } = useAuthModal();

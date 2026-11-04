@@ -16,7 +16,7 @@ real provider verification, review or financial history.
 
 | Area | Implemented behavior |
 | --- | --- |
-| Authentication | Real email/password sign-in and signup, confirmation callback, password recovery/reset UI, cookie-session refresh and logout. Demo login/role switching disabled in backend mode. |
+| Authentication | Real email/password sign-in and signup, Google OAuth initiation and PKCE callback, confirmation resend, password recovery/reset UI, cookie-session refresh and logout. Google currently blocked by its external redirect configuration (see below). Demo login/role switching disabled in backend mode. |
 | Authorization | Private account roles, protected routes, database-enforced ownership checks and role gates; no public administrator signup. |
 | Families | Persistent profiles, elder/child recipients, recorded guardian checkbox consent and consent withdrawal with upcoming-visit cancellation/contact restriction. |
 | Providers | Persistent applications, editable public profile, weekly availability, pending/approved/rejected state and verification history. |
@@ -34,7 +34,8 @@ real provider verification, review or financial history.
 
 ## Validation and limitations of evidence
 
-- Existing frontend/business suite: 40 tests passed.
+- Frontend/business/auth suite: 59 tests passed, including callback exchange,
+  cancellation/expiry/network errors, safe return URLs and public role hints.
 - TypeScript checking, ESLint and the optimized Next.js production build passed.
 - Transactional SQL integration/security suite passed against the actual linked
   project, including cross-account denial and private upload metadata RLS.
@@ -61,7 +62,8 @@ real provider verification, review or financial history.
    provider conflicts, pause/cancel effects, renewal failures and notifications.
 3. **Phone OTP:** select/configure a delivery provider and integrate the real
    sign-in/verification flow, including abuse protection. Fixed test codes must
-   never authenticate arbitrary production accounts. Current mode uses email.
+   never authenticate arbitrary production accounts. Email/password and Google
+   OAuth do not require an SMS provider.
 4. **Email deliverability:** configure SMTP and exact auth redirect URLs; test
    real signup confirmation, recovery and transactional messages. Built-in
    Supabase mail is restricted and low-volume, not a public launch sender.
@@ -86,8 +88,8 @@ Supplying API keys alone does not complete them.
 
 1. Rotate/revoke the privileged Supabase keys previously posted in chat. Do not
    paste replacements into messages; this application does not need them.
-2. Confirm the email address for the first operations administrator and create
-   that account yourself. Admin privileges will be assigned privately afterward.
+2. The first administrator account has been assigned after email confirmation.
+   Keep administrator credentials private and enable MFA before launch.
 3. Add the chosen development callback URLs in Supabase Authentication and
    provide/configure a sender for reliable email testing. No Twilio upgrade is
    required to keep developing with email/password.
@@ -105,3 +107,31 @@ This backend is prepared on `codex/supabase-backend` for a development preview.
 It must not be promoted as launch-ready production. Keep the existing public
 site unchanged until testing, owner setup and remaining launch requirements
 are completed. See the task handoff for the verified commit and preview URL.
+
+## Email and Google sign-in setup (4 November)
+
+- Email and Google are enabled in the live Supabase project's public Auth
+  settings; phone is disabled. Backend-mode login does not request phone OTP.
+- Browser testing of the Google button reached Google but returned HTTP 400
+  `redirect_uri_mismatch`. In Google Cloud / Google Auth Platform / Clients,
+  edit the web OAuth client configured in Supabase and add this exact
+  **Authorized redirect URI**:
+  `https://hjoektofktwvdlgptcrk.supabase.co/auth/v1/callback`.
+  This is Google's redirect to Supabase, not the application's callback URL.
+- In Supabase Authentication / URL Configuration, set Site URL to the chosen
+  CareKin environment and allow its `/auth/callback` URL with query parameters
+  (for example the trusted environment's `/auth/callback**` entry). For local
+  development the app runs at `http://localhost:3100`. Keep production and
+  preview origins explicit; do not permit arbitrary domains. This configuration
+  has not been verified or changed in this update; the earlier localhost:3000
+  confirmation redirect needs owner review.
+- New Google users choose family/provider after their first successful login;
+  existing users retain their database role. A URL hint never grants admin.
+- The callback preserves safe internal booking destinations and routes expired
+  or cancelled links back to a recovery-capable sign-in screen. It is not cached.
+- A complete Google account sign-in is **not verified** until the owner fixes
+  Google Cloud settings and tests the consent/return flow. Built-in email
+  delivery restrictions still apply; arbitrary public email signup requires a
+  configured mail sender. Google sign-in does not use that SMTP service.
+- Main-site promotion remains a separate owner choice because enabling this
+  branch replaces demo records with real Supabase records across the app.
