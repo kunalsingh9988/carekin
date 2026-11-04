@@ -103,10 +103,15 @@ Supplying API keys alone does not complete them.
 
 ## Release boundary
 
-This backend is prepared on `codex/supabase-backend` for a development preview.
-It must not be promoted as launch-ready production. Keep the existing public
-site unchanged until testing, owner setup and remaining launch requirements
-are completed. See the task handoff for the verified commit and preview URL.
+On 4 November, the owner approved replacing the public demo at
+`https://carekin-web.vercel.app` with the Supabase-backed version. Production
+uses the same existing Supabase project as the development preview; these
+environments do not yet have isolated databases. Only public Supabase client
+configuration is needed in Vercel. Demo login and demo provider records are
+not available in backend mode. Payments remain disabled and the development
+warning remains visible. Publishing on the main domain does not make the
+service launch-ready; the requirements above still apply. See the task handoff
+for the verified deployment result.
 
 ## Email and Google sign-in setup (4 November)
 
@@ -133,5 +138,5 @@ are completed. See the task handoff for the verified commit and preview URL.
   Google Cloud settings and tests the consent/return flow. Built-in email
   delivery restrictions still apply; arbitrary public email signup requires a
   configured mail sender. Google sign-in does not use that SMTP service.
-- Main-site promotion remains a separate owner choice because enabling this
-  branch replaces demo records with real Supabase records across the app.
+- Main-site promotion was explicitly approved by the owner, including replacing
+  demo records with real Supabase records and keeping payments disabled.
