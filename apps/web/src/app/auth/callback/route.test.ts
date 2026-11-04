@@ -38,9 +38,15 @@ describe("PKCE callback", () => {
     const url = await callback("error=access_denied&error_code=otp_expired");
     expect(url.searchParams.get("error")).toBe("expired-link");
   });
+  it("reports provider failures without leaking raw errors or calling the session exchange", async () => {
+    const url = await callback("code=ignored&error=server_error&error_code=unexpected_failure&error_description=private-provider-detail");
+    expect(url.searchParams.get("error")).toBe("oauth-failed");
+    expect(url.toString()).not.toContain("private-provider-detail");
+    expect(exchange).not.toHaveBeenCalled();
+  });
   it("handles rejected and unavailable exchanges without a server error", async () => {
     exchange.mockResolvedValueOnce({ error: new Error("Invalid code") });
-    expect((await callback("code=expired")).searchParams.get("error")).toBe("expired-link");
+    expect((await callback("code=expired")).searchParams.get("error")).toBe("session-exchange-failed");
     exchange.mockRejectedValueOnce(new Error("Network down"));
     expect((await callback("code=unavailable")).searchParams.get("error")).toBe("unavailable");
   });

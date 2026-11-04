@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseServer } from "@/lib/backend/server";
-import { safeNext, signupRole } from "@/lib/auth/redirects";
+import { callbackErrorCode, safeNext, signupRole } from "@/lib/auth/redirects";
 function redirect(destination: URL) {
   const response = NextResponse.redirect(destination);
   response.headers.set("Cache-Control", "private, no-store");
@@ -26,6 +26,6 @@ export async function GET(request: NextRequest) {
       return redirect(destination);
     }
   }
-  destination.searchParams.set("error", request.nextUrl.searchParams.get("error") === "access_denied" && request.nextUrl.searchParams.get("error_code") !== "otp_expired" ? "cancelled" : "expired-link");
+  destination.searchParams.set("error", callbackErrorCode(request.nextUrl.searchParams.get("error"), request.nextUrl.searchParams.get("error_code")));
   return redirect(destination);
 }

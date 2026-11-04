@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authCallbackUrl, authErrorMessage, safeNext, signupRole } from "./redirects";
+import { authCallbackUrl, authErrorMessage, callbackErrorCode, safeNext, signupRole } from "./redirects";
 
 describe("authentication navigation", () => {
   it("preserves internal destinations and query strings", () => {
@@ -28,5 +28,13 @@ describe("authentication navigation", () => {
     expect(authErrorMessage("expired-link")).toContain("new confirmation");
     expect(authErrorMessage("untrusted-description")).not.toContain("untrusted-description");
     expect(authErrorMessage()).toBe("");
+  });
+  it("does not mislabel Google provider failures as expired email links", () => {
+    expect(callbackErrorCode("server_error", "unexpected_failure")).toBe("oauth-failed");
+    expect(callbackErrorCode("access_denied", null)).toBe("cancelled");
+    expect(callbackErrorCode("access_denied", "otp_expired")).toBe("expired-link");
+    expect(callbackErrorCode(null, null)).toBe("session-exchange-failed");
+    expect(authErrorMessage("oauth-failed")).not.toContain("expired");
+    expect(authErrorMessage("oauth-failed")).toContain("email and password");
   });
 });

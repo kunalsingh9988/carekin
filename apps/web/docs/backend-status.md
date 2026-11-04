@@ -136,6 +136,12 @@ for the verified deployment result.
   must add a secret and enter it directly in Supabase's Google provider settings;
   retain the old Google secret because another application shares this client.
   Never commit, log or send the replacement secret in chat.
+- After the owner reported saving a new secret, the live retest at 23:39:15
+  still returned Google's `invalid_client` / invalid client secret error
+  (Supabase log `c6ca86a4-e443-461b-8170-e9db56aa5c4f`). Google login remains
+  blocked; the credential must belong to the configured OAuth client, not
+  another Google client/project. Provider errors now have a separate safe
+  message instead of being mislabeled as expired email-confirmation links.
 - New Google users choose family/provider after their first successful login;
   existing users retain their database role. A URL hint never grants admin.
 - The callback preserves safe internal booking destinations and routes expired
