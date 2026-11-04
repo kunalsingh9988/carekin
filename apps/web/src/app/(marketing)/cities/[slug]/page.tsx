@@ -10,38 +10,28 @@ import { Card } from "@/components/ui/Card";
 export default async function CityPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const city = getCityBySlug(slug);
-  if (!city || !city.live) notFound();
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    serviceType: "Elder care and babysitting",
-    provider: { "@type": "LocalBusiness", name: "CareKin", areaServed: city.name },
-    areaServed: { "@type": "City", name: city.name },
-  };
+  if (!slug.trim() || slug.length > 120) notFound();
+  const locationName = city?.name ?? slug.replaceAll("-", " ");
 
   return (
     <main className="mx-auto flex max-w-2xl flex-1 flex-col gap-8 px-6 py-16">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
       <div className="text-center">
-        <h1 className="text-4xl font-bold leading-4xl text-text-primary">Verified caregivers &amp; babysitters in {city.name}</h1>
+        <h1 className="break-words text-4xl font-bold leading-4xl text-text-primary">Explore CareKin from {locationName}</h1>
         <p className="mt-2 text-text-secondary">
-          Live in {city.neighborhoods} — every provider passes ID verification, a police check, and an in-person
-          interview before appearing here.
+          {locationName} is open for development testing, along with every other location. Browse approved profiles and try the care booking journey.
         </p>
       </div>
 
       <Card className="flex items-center gap-3">
         <ShieldCheck className="h-6 w-6 shrink-0 text-verified" />
-        <p className="text-sm text-text-primary">Every provider in {city.name} is verified the same way, no exceptions.</p>
+        <p className="text-sm text-text-primary">Only approved profiles appear in search. Development access does not guarantee a provider is available in your area.</p>
       </Card>
 
       <Link
-        href={`/search?city=${city.slug}`}
+        href={`/search?area=${encodeURIComponent(locationName)}`}
         className="min-h-tap mx-auto flex items-center rounded-md bg-accent px-6 text-base font-semibold text-white transition-colors hover:bg-accent-hover"
       >
-        Search verified caregivers in {city.name}
+        Browse approved profiles
       </Link>
     </main>
   );

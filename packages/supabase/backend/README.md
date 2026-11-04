@@ -23,13 +23,21 @@ supabase db query --linked --workdir packages --file supabase/backend/001_core.s
 supabase db query --linked --workdir packages --file supabase/backend/002_api.sql
 supabase db query --linked --workdir packages --file supabase/backend/003_care.sql
 supabase db query --linked --workdir packages --file supabase/backend/004_hardening.sql
+supabase db query --linked --workdir packages --file supabase/backend/005_all_locations.sql
 ```
 
-All four files have already been applied to the target above. Subsequent
+All five files have been applied to the target above. Subsequent
 function-only fixes may reapply 002/003. Introduce separately numbered,
 reviewed migrations for future schema changes. Take a backup before changes
 to a populated database. Do not push the historical `../config.toml`: it has
 local-only assumptions and test OTP configuration.
+
+`005_all_locations.sql` enables development discovery across all locations, with
+a maximum search distance of 20,040 km. It preserves the 100-result limit,
+approval gates, guest privacy, provider service radius and booking rules. Set
+`carekin.settings.development_all_locations` to JSON `false` to restore the
+50 km server cap when returning to local discovery; update the search UI at
+the same time. This setting can only be changed through privileged operations.
 
 ## Web configuration
 

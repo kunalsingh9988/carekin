@@ -80,4 +80,18 @@ describe("providers repository", () => {
     expect(reviews[0].to_status).toBe("pending");
     expect(reviews[0].from_status).toBeNull();
   });
+
+  it("supports development discovery across continents without exposing pending profiles or private fields", async () => {
+    const approved = await createProviderProfile("worldwide", makeProviderInput({ name: "Distant provider", latitude: -33.8688, longitude: 151.2093 }));
+    const antipodal = await createProviderProfile("opposite-side", makeProviderInput({ name: "Antipodal provider", latitude: -CENTER.latitude, longitude: CENTER.longitude - 180 }));
+    await createProviderProfile("pending-worldwide", makeProviderInput({ latitude: 40.7128, longitude: -74.006 }));
+    await approveProvider(approved.id, "admin-1");
+    await approveProvider(antipodal.id, "admin-1");
+    const result = await listApprovedProviders({ type: "caregiver", ...CENTER, radiusKm: 20040 });
+    expect(result.map(provider => provider.id)).toEqual([approved.id, antipodal.id]);
+    expect(result[1].distance_km).toBeLessThan(20040);
+    expect(result[0].distance_km).toBeGreaterThan(1000);
+    expect(result[0]).not.toHaveProperty("phone");
+    expect(result[0]).not.toHaveProperty("latitude");
+  });
 });

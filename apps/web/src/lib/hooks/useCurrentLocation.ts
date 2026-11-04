@@ -1,39 +1,21 @@
 "use client";
 
 import { useCallback, useState } from "react";
-
-// Koramangala, Bengaluru — used as a same-neighborhood fallback so the
-// "Use my location" button always produces something plausible even when
-// browser geolocation is denied (common in sandboxed/demo environments).
-const FALLBACK = { latitude: 12.9352, longitude: 77.6146 };
+import type { LocationCoordinates } from "@/lib/locations";
 
 export function useCurrentLocation() {
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [usedFallback, setUsedFallback] = useState(false);
-
-  const fetchLocation = useCallback(() => {
-    setLoading(true);
-    setUsedFallback(false);
-    if (!("geolocation" in navigator)) {
-      setCoords(FALLBACK);
-      setUsedFallback(true);
-      setLoading(false);
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
-        setLoading(false);
-      },
-      () => {
-        setCoords(FALLBACK);
-        setUsedFallback(true);
-        setLoading(false);
-      },
-      { timeout: 5000 },
-    );
+  const [error, setError] = useState("");
+  const fetchLocation = useCallback(async (): Promise<LocationCoordinates | null> => {
+    setLoading(true); setError("");
+    try {
+      if (!("geolocation" in navigator)) throw new Error("Location unavailable");
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 }));
+      return { latitude: position.coords.latitude, longitude: position.coords.longitude };
+    } catch {
+      setError("We couldn’t access your location. Choose a city or enter coordinates below.");
+      return null;
+    } finally { setLoading(false); }
   }, []);
-
-  return { coords, loading, usedFallback, fetchLocation };
+  return { loading, error, fetchLocation };
 }

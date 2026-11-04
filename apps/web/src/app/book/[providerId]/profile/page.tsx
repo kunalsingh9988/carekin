@@ -3,7 +3,8 @@
 import { use, useEffect, useState } from "react";
 import { useRouter, notFound } from "next/navigation";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
-import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
+import { LocationPicker } from "@/components/onboarding/LocationPicker";
+import type { LocationCoordinates } from "@/lib/locations";
 import { getFamilyProfile, saveFamilyProfile, getCareRecipients, addElderRecipient } from "@/lib/storage/repositories/families";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
 import { setPendingBooking, getPendingBooking, getPendingReferral, clearPendingReferral, setPendingChildRecipient } from "@/lib/storage/session";
@@ -24,7 +25,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
   const [pending, setPending] = useState<PendingBooking | null>(null);
   const [family, setFamily] = useState<FamilyProfile | null>(null);
   const [recipients, setRecipients] = useState<CareRecipient[]>([]);
-  const { coords, fetchLocation } = useCurrentLocation();
+  const [coords, setCoords] = useState<LocationCoordinates | null>(null);
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -50,11 +51,9 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
         setName(f.name);
         setAddress(f.address);
         getCareRecipients(f.id).then(setRecipients);
-      } else {
-        fetchLocation();
       }
     });
-  }, [providerId, user, router, fetchLocation]);
+  }, [providerId, user, router]);
 
   if (provider === null) notFound();
   if (!user || provider === undefined) return null;
@@ -69,14 +68,15 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if (!coords && !family) return;
     setSubmitting(true);
 
     const isNewFamily = !family;
     const savedFamily = await saveFamilyProfile(user.id, {
       name,
       address,
-      latitude: coords?.latitude ?? family?.latitude ?? 12.9352,
-      longitude: coords?.longitude ?? family?.longitude ?? 77.6146,
+      latitude: coords?.latitude ?? family!.latitude,
+      longitude: coords?.longitude ?? family!.longitude,
     });
 
     // Referral capture (Section: give-₹X-get-₹X) — recorded the moment a
@@ -132,6 +132,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
           <>
             <TextField label="Your name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Priya Sharma" />
             <TextAreaField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Flat 4B, Green Park" />
+            <LocationPicker value={coords} onChange={setCoords} />
           </>
         )}
 
@@ -156,7 +157,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
         <TextField label="Their name" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="e.g. Dadi, or child's name" />
         <TextAreaField label="Notes (optional)" value={recipientNotes} onChange={(e) => setRecipientNotes(e.target.value)} placeholder="Anything the caregiver should know" />
 
-        <Button type="submit" disabled={submitting || !recipientName || (!family && (!name || !address))} fullWidth>
+        <Button type="submit" disabled={submitting || !recipientName || (!family && (!name || !address || !coords))} fullWidth>
           Continue
         </Button>
       </form>

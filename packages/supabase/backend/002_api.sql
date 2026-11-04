@@ -14,7 +14,7 @@ begin
    select carekin.public_provider(q)||jsonb_build_object('distance_km',round(km::numeric,1)) data, km from (
     select pp, 6371*2*asin(sqrt(least(1.0,power(sin(radians(pp.latitude-(a->>'latitude')::float)/2),2)+cos(radians(pp.latitude))*cos(radians((a->>'latitude')::float))*power(sin(radians(pp.longitude-(a->>'longitude')::float)/2),2)))) km
     from carekin.providers pp where verification_status='approved' and type=a->>'type'
-   ) dist(q,km) where km<=least(coalesce((a->>'radiusKm')::numeric,10),50) order by km limit 100
+   ) dist(q,km) where km<=least(coalesce((a->>'radiusKm')::numeric,10),case when coalesce((select value::boolean from carekin.settings where key='development_all_locations'),false) then 20040 else 50 end) order by km limit 100
   ) found; return result;
  elsif operation='providers.getProviderPublic' then
   select carekin.public_provider(pp) into result from carekin.providers pp where pp.id=(args->>0)::uuid and verification_status='approved'; return result;

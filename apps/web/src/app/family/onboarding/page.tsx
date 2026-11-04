@@ -6,7 +6,8 @@ import Link from "next/link";
 import { get, set } from "@/lib/storage/client";
 import { HeartHandshake, ShieldCheck } from "lucide-react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
-import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
+import { LocationPicker } from "@/components/onboarding/LocationPicker";
+import type { LocationCoordinates } from "@/lib/locations";
 import { getFamilyProfile, saveFamilyProfile, addElderRecipient, addChildRecipientWithConsent } from "@/lib/storage/repositories/families";
 import type { CareRecipientType, FamilyProfile } from "@/lib/storage/types";
 import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
@@ -24,7 +25,7 @@ type Step = "about" | "recipient" | "done";
 export default function FamilyOnboardingPage() {
   const user = useRequireRole("family");
   const router = useRouter();
-  const { coords, loading: locating, usedFallback, fetchLocation } = useCurrentLocation();
+  const [coords, setCoords] = useState<LocationCoordinates | null>(null);
 
   const [existing, setExisting] = useState<FamilyProfile | null>(null);
   const [checked, setChecked] = useState(false);
@@ -32,7 +33,6 @@ export default function FamilyOnboardingPage() {
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [usePilotArea, setUsePilotArea] = useState(false);
   const [family, setFamily] = useState<FamilyProfile | null>(null);
 
   const [recipientType, setRecipientType] = useState<CareRecipientType>("elder");
@@ -70,13 +70,13 @@ export default function FamilyOnboardingPage() {
       setError("Add your name and address to continue.");
       return;
     }
-    if (!coords && !usePilotArea) {
-      setError("Tap \"Use my current location\" so we can show caregivers near you.");
+    if (!coords) {
+      setError("Choose your location using GPS, a city centre, or coordinates.");
       return;
     }
     setSubmitting(true);
     try {
-      const at = coords ?? { latitude: 12.9352, longitude: 77.6146 };
+      const at = coords;
       const f = await saveFamilyProfile(user!.id, { name: name.trim(), address: address.trim(), latitude: at.latitude, longitude: at.longitude });
       set(`familyOnboarding:${user!.id}`, true);
       setFamily(f);
@@ -120,11 +120,7 @@ export default function FamilyOnboardingPage() {
           <TextField label="Your name" placeholder="Priya Sharma" value={name} onChange={(e) => setName(e.target.value)} />
           <TextAreaField label="Address" placeholder="Flat, street, landmark" value={address} onChange={(e) => setAddress(e.target.value)} />
 
-          <Button type="button" variant="secondary" onClick={fetchLocation} disabled={locating}>
-            {coords ? (usedFallback ? "Using approximate location" : "Location saved") : locating ? "Locating…" : "Use my current location"}
-          </Button>
-
-          <button type="button" onClick={() => setUsePilotArea(true)} className="min-h-tap rounded-md bg-accent-tint px-4 text-sm font-medium text-accent-text">{usePilotArea ? "Koramangala demo area selected" : "Use Koramangala demo area instead"}</button>
+          <LocationPicker value={coords} onChange={setCoords} />
 
           {error && <p className="text-sm text-danger">{error}</p>}
 

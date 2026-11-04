@@ -21,7 +21,7 @@ real provider verification, review or financial history.
 | Families | Persistent profiles, elder/child recipients, recorded guardian checkbox consent and consent withdrawal with upcoming-visit cancellation/contact restriction. |
 | Providers | Persistent applications, editable public profile, weekly availability, pending/approved/rejected state and verification history. |
 | Documents | Actual private PDF/JPEG/PNG uploads, owner path restrictions, metadata tied to stored files, short-lived owner/admin viewing links. |
-| Discovery | Approved-only provider directory and reviews; public responses omit phone, exact coordinates and account IDs. No fake providers appear in backend mode. |
+| Discovery | All locations open for development testing; approved-only directory and reviews across locations, with a 100-result limit. Public responses omit phone, exact coordinates and account IDs. No fake providers appear in backend mode. |
 | Booking | Single-visit development requests, server-owned quotes, availability checks in India time, duplicate protection, database overlap exclusion, provider accept/decline, cancellation and rescheduling. |
 | Chat | Shared persisted messages for authorized participants; sender derived from session, contact restrictions enforced on reads/writes, basic send-rate limit. UI uses polling, not WebSocket Realtime. |
 | Active Care | Server-side visit phases/timestamps, family-owned arrival PIN, failed-PIN lockout, provider check-in, checklist, care brief/address windows, checkout request/family confirmation and safe return. |
@@ -34,7 +34,8 @@ real provider verification, review or financial history.
 
 ## Validation and limitations of evidence
 
-- Frontend/business/auth suite: 59 tests passed, including callback exchange,
+- Frontend/business/auth suite: 69 tests passed, including location validation,
+  cross-continent discovery, callback exchange,
   cancellation/expiry/network errors, safe return URLs and public role hints.
 - TypeScript checking, ESLint and the optimized Next.js production build passed.
 - Transactional SQL integration/security suite passed against the actual linked
@@ -140,3 +141,16 @@ for the verified deployment result.
   configured mail sender. Google sign-in does not use that SMTP service.
 - Main-site promotion was explicitly approved by the owner, including replacing
   demo records with real Supabase records and keeping payments disabled.
+
+## All-location development access (4 November)
+
+At the owner's request, the Bengaluru-only presentation and nearby discovery
+limit have been removed for development. Arbitrary city/area searches and city
+pages are accepted; suggested cities are shortcuts, not a whitelist. Approved
+providers across locations can be browsed without granting geolocation access.
+Distances are shown only for recognized city centres and labelled accordingly.
+New family/provider profiles can use GPS anywhere, a suggested city centre, or
+manually entered valid coordinates; denied GPS no longer assigns Koramangala.
+The backend change is `005_all_locations.sql`, controlled by the private
+`development_all_locations` setting. A global test directory does not guarantee
+local provider availability. Payments and provider approval rules are unchanged.

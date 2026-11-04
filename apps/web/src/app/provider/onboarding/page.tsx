@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
-import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
+import { LocationPicker } from "@/components/onboarding/LocationPicker";
+import type { LocationCoordinates } from "@/lib/locations";
 import { createProviderProfile, getMyProvider, getDocuments } from "@/lib/storage/repositories/providers";
 import { ProviderProfileSchema, type ProviderProfileFormValues } from "@/lib/validation/schemas";
 import { Button } from "@/components/ui/Button";
@@ -15,8 +16,7 @@ import { TextField, TextAreaField, SelectField } from "@/components/ui/FormField
 export default function ProviderOnboardingPage() {
   const user = useRequireRole("provider");
   const router = useRouter();
-  const { coords, loading: locating, usedFallback, fetchLocation } = useCurrentLocation();
-  const [usePilotArea, setUsePilotArea] = useState(false);
+  const [coords, setCoords] = useState<LocationCoordinates | null>(null);
 
   const {
     register,
@@ -52,8 +52,8 @@ export default function ProviderOnboardingPage() {
   if (!user) return null;
 
   async function onSubmit(values: ProviderProfileFormValues) {
-    if (!coords && !usePilotArea) return;
-    const at = coords ?? { latitude: 12.9352, longitude: 77.6146 };
+    if (!coords) return;
+    const at = coords;
     await createProviderProfile(user!.id, { ...values, latitude: at.latitude, longitude: at.longitude });
     router.push("/provider/onboarding/documents");
   }
@@ -76,13 +76,9 @@ export default function ProviderOnboardingPage() {
         <TextAreaField label="Bio" placeholder="Your experience, availability, languages" {...register("bio")} error={errors.bio?.message} />
         <TextField label="Service radius (km)" type="number" {...register("serviceRadiusKm")} error={errors.serviceRadiusKm?.message} />
 
-        <Button type="button" variant="secondary" onClick={fetchLocation} disabled={locating}>
-          {coords ? (usedFallback ? "Using approximate location" : "Location saved") : locating ? "Locating…" : "Use my current location"}
-        </Button>
+        <LocationPicker value={coords} onChange={setCoords} />
 
-        <button type="button" onClick={() => { setUsePilotArea(true); setValue("latitude", 12.9352); setValue("longitude", 77.6146); }} className="min-h-tap rounded-md bg-accent-tint px-4 text-sm font-medium text-accent-text">{usePilotArea ? "Koramangala demo area selected" : "Use Koramangala demo area instead"}</button>
-
-        <Button type="submit" disabled={(!coords && !usePilotArea) || isSubmitting} fullWidth>
+        <Button type="submit" disabled={!coords || isSubmitting} fullWidth>
           Continue to documents
         </Button>
       </form>
