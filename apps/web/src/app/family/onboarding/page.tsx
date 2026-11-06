@@ -120,7 +120,7 @@ export default function FamilyOnboardingPage() {
           <TextField label="Your name" placeholder="Priya Sharma" value={name} onChange={(e) => setName(e.target.value)} />
           <TextAreaField label="Address" placeholder="Flat, street, landmark" value={address} onChange={(e) => setAddress(e.target.value)} />
 
-          <LocationPicker value={coords} onChange={setCoords} />
+          <LocationPicker value={coords} onChange={setCoords} address={address} onAddressConfirmed={setAddress} />
 
           {error && <p className="text-sm text-danger">{error}</p>}
 

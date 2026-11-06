@@ -5,8 +5,16 @@ import { parseCoordinates, type LocationCoordinates } from "@/lib/locations";
 import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
 import { Button } from "@/components/ui/Button";
 import type { DeviceLocation } from "@/lib/geolocation";
+import { geoapifyKey } from "@/lib/maps";
+import { AddressPicker } from "./AddressPicker";
 
-export function LocationPicker({ value, onChange }: { value: LocationCoordinates | null; onChange: (value: LocationCoordinates | null) => void }) {
+type Props = { value: LocationCoordinates | null; address?: string; onChange: (value: LocationCoordinates | null) => void; onAddressConfirmed?: (address: string) => void };
+export function LocationPicker(props: Props) {
+  if (!geoapifyKey) return <CoordinatePicker value={props.value} onChange={props.onChange} />;
+  return <div className="grid min-w-0 gap-4"><AddressPicker {...props} /><details className="text-sm"><summary className="min-h-tap cursor-pointer py-3 text-accent-text">Use manual coordinates or a city centre instead</summary><div className="mt-3"><CoordinatePicker value={props.value} onChange={props.onChange} /></div></details></div>;
+}
+
+export function CoordinatePicker({ value, onChange }: { value: LocationCoordinates | null; onChange: (value: LocationCoordinates | null) => void }) {
   const { loading, error, fetchLocation, clearLocationRequest } = useCurrentLocation();
   const [latitude, setLatitude] = useState(value ? String(value.latitude) : "");
   const [longitude, setLongitude] = useState(value ? String(value.longitude) : "");

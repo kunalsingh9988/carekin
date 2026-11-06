@@ -132,7 +132,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
           <>
             <TextField label="Your name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Priya Sharma" />
             <TextAreaField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Flat 4B, Green Park" />
-            <LocationPicker value={coords} onChange={setCoords} />
+            <LocationPicker value={coords} onChange={setCoords} address={address} onAddressConfirmed={setAddress} />
           </>
         )}
 
