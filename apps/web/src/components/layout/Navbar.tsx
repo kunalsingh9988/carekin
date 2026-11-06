@@ -90,7 +90,7 @@ export function Navbar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <ThemeToggle />
+          <div className={user ? "hidden min-[400px]:block" : ""}><ThemeToggle /></div>
           <div className="hidden sm:block"><LanguageToggle /></div>
           {user ? (
             <>
@@ -127,6 +127,7 @@ export function Navbar() {
 
       {menuOpen && (
         <nav id="site-navigation" className="mt-3 flex max-h-[calc(100dvh-6rem)] flex-col gap-1 overflow-y-auto overscroll-contain border-t border-border pt-3 xl:hidden">
+          {user && <div className="min-[400px]:hidden"><ThemeToggle /></div>}
           <div className="sm:hidden"><LanguageToggle /></div>
           {links.map((link) => (
             <Link
