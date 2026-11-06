@@ -5,6 +5,8 @@ import { get, newId, set, remove } from "../storage/client";
 import type { CurrentUser, UserRole } from "../storage/types";
 import { backendEnabled } from "../backend/config";
 import { remote, supabaseBrowser } from "../backend/browser";
+import { AccountDetailsSchema, identityDetails } from "./profile";
+import { AVATAR_BUCKET, ownedAvatarPath, privateAvatarUrl } from "./avatar";
 
 const KEY = "currentUser";
 const STORAGE_EVENT_KEY = `carekin:${KEY}`;
@@ -113,9 +115,53 @@ export function loginAsDemo(role: UserRole): CurrentUser {
 export async function refreshCurrentUser(): Promise<CurrentUser | null> {
   if (!backendEnabled) return getCurrentUser();
   const { data: { user } } = await supabaseBrowser().auth.getUser();
-  const current = user ? await remote<CurrentUser | null>("auth.me") : null;
+  const account = user ? await remote<CurrentUser | null>("auth.me") : null;
+  // Role and account ID remain server-owned, never copied from user metadata.
+  const current = account && user ? { ...account, ...identityDetails(user) } : null;
+  if (current && user && ownedAvatarPath(user.user_metadata?.avatar_path, user.id)) {
+    current.avatar_path = user.user_metadata.avatar_path;
+    current.avatar_url = await privateAvatarUrl(current.avatar_path, user.id);
+  }
   commitUser(current);
   return current;
+}
+
+export async function saveAccountPhoto(photo: Blob | null): Promise<void> {
+  const current = getCurrentUser();
+  if (!current) throw new Error("Sign in before changing your photo.");
+  if (!backendEnabled) throw new Error("Photo storage requires a connected account. Demo accounts use initials.");
+  const path = photo ? `${current.id}/${crypto.randomUUID()}.${photo.type === "image/png" ? "png" : photo.type === "image/jpeg" ? "jpg" : "webp"}` : null;
+  if (path && photo) {
+    const { error } = await supabaseBrowser().storage.from(AVATAR_BUCKET).upload(path, photo, { contentType: photo.type, upsert: false });
+    if (error) throw new Error("Your photo could not be uploaded. Check your connection and try again.");
+  }
+  const { error } = await supabaseBrowser().auth.updateUser({ data: { avatar_path: path, hide_account_photo: !photo } });
+  if (error) {
+    if (path) await supabaseBrowser().storage.from(AVATAR_BUCKET).remove([path]);
+    throw new Error("Your photo was not saved to your account. Please try again.");
+  }
+  await refreshCurrentUser();
+  if (ownedAvatarPath(current.avatar_path, current.id)) {
+    await supabaseBrowser().storage.from(AVATAR_BUCKET).remove([current.avatar_path]);
+  }
+}
+
+export async function saveAccountDetails(input: { displayName: string; contactPhone: string }): Promise<void> {
+  const details = AccountDetailsSchema.parse(input);
+  const current = getCurrentUser();
+  if (!current) throw new Error("Sign in before editing your account.");
+  if (backendEnabled) {
+    const { error } = await supabaseBrowser().auth.updateUser({ data: { display_name: details.displayName, contact_phone: details.contactPhone } });
+    if (error) throw error;
+    await refreshCurrentUser();
+  } else {
+    const updated = { ...current, display_name: details.displayName, contact_phone: details.contactPhone };
+    set(KEY, updated);
+    const users = get<Record<string, CurrentUser>>("usersByPhone", {});
+    for (const key of Object.keys(users)) if (users[key].id === current.id) users[key] = updated;
+    set("usersByPhone", users);
+    commitUser(updated);
+  }
 }
 
 export function initializeBackendAuth() {

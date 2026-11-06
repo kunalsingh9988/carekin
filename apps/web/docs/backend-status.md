@@ -1,5 +1,13 @@
 # CareKin backend completion report
 
+## Account profile and private photos — 6 November 2026
+
+- `/account` is a signed-in, role-aware profile for families, providers and administrators. The header shows a Google portrait, private uploaded portrait or initials. Role/account ID remain server-owned; editable metadata cannot grant access.
+- Account display name and an explicitly unverified optional contact number persist in Auth metadata. Family name/address/location use the existing owner-authorized family API; professional name/bio/radius use the existing provider API. Consent, availability and verification stay in their dedicated workflows.
+- Camera capture (with explicit browser permission) and JPG/PNG/WebP upload support local preview, discard and explicit save. Images are decoded/re-encoded, resized to at most 1,024px, and original EXIF metadata is not uploaded. Input limit: 5 MB / 40 megapixels. Private `carekin-avatars` bucket and owner-only folder policies are in `006_account_photos.sql`.
+- Portraits use expiring signed reads, not public URLs. Removing a photo falls back to initials. These portraits are not public provider identity evidence. Email/phone verification states are never inferred from editable metadata.
+- `node scripts/qa-account-profile.mjs` checks real owner upload/read, cross-account denial, public denial, metadata persistence and protection of the server-owned role using disposable accounts; it removes its own synthetic test records afterward. Camera hardware remains a device-permission-dependent check.
+
 Date: 4 November 2026. Scope: implement as much as safely possible with the
 existing Supabase project, without buying SMS, payments or other services.
 

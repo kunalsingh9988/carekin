@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { addElderRecipient, getCareRecipients, getFamilyProfile } from "@/lib/storage/repositories/families";
 import type { CareRecipient, FamilyProfile } from "@/lib/storage/types";
-import { Button } from "@/components/ui/Button";
+import { Button, LinkButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TextField } from "@/components/ui/FormField";
 import { backendEnabled } from "@/lib/backend/config";
@@ -53,6 +53,7 @@ export default function FamilySettingsPage() {
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
       <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
+      <LinkButton href="/account" variant="secondary">Your profile, photo &amp; account details</LinkButton>
       {message && <p role="status" className="text-sm text-text-secondary">{message}</p>}
 
       {family && (

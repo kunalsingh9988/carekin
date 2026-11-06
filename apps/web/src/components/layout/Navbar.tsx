@@ -10,6 +10,7 @@ import { LanguageToggle } from "./LanguageToggle";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import { AccountAvatar } from "@/components/ui/AccountAvatar";
 
 // /search is public (Section 5.1) — always shown, not gated behind login.
 const PUBLIC_LINKS = [
@@ -99,6 +100,9 @@ export function Navbar() {
                 </span>
               )}
               <NotificationBell userId={user.id} />
+              <Link href="/account" aria-label="Your profile" title="Your profile" onClick={() => setMenuOpen(false)} className="inline-flex min-h-tap min-w-tap items-center justify-center rounded-full">
+                <AccountAvatar name={user.display_name} email={user.email} src={user.avatar_url} />
+              </Link>
               <button disabled={signingOut} onClick={handleLogout} className="min-h-tap hidden rounded-md px-3 text-sm font-medium text-text-secondary md:block">
                 {signingOut ? "Logging out…" : "Log out"}
               </button>
@@ -134,6 +138,9 @@ export function Navbar() {
               {link.label}
             </Link>
           ))}
+          {user && (
+            <Link href="/account" onClick={() => setMenuOpen(false)} className="min-h-tap flex items-center rounded-md px-2 text-sm font-medium text-text-primary">Your profile</Link>
+          )}
           {user && (
             <button disabled={signingOut} onClick={handleLogout} className="min-h-tap flex items-center rounded-md px-2 text-left text-sm font-medium text-text-secondary">
               {signingOut ? "Logging out…" : "Log out"}

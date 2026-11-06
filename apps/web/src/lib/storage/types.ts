@@ -11,6 +11,15 @@ export interface CurrentUser {
   role: UserRole;
   phone: string;
   created_at: string;
+  email?: string;
+  display_name?: string;
+  avatar_url?: string;
+  avatar_path?: string;
+  contact_phone?: string;
+  email_verified?: boolean;
+  phone_verified?: boolean;
+  auth_providers?: string[];
+  last_sign_in_at?: string;
 }
 
 export interface FamilyProfile {
