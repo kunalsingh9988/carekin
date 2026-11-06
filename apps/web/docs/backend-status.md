@@ -172,6 +172,17 @@ for the verified deployment result.
 
 ## All-location development access (4 November)
 
+Location request hardening (6 November): the shared family/provider picker
+accepts a device fix cached for at most one minute, then retries a temporary
+failure once with a fresh high-accuracy request (15 + 20 second acquisition
+timeouts). Permission denial is never retried or bypassed. Errors distinguish
+denied permission, unavailable services, timeout, unsupported browsers and
+insecure contexts, with browser/device recovery instructions. Cancel and manual
+selection invalidate pending results, and selecting a fallback clears stale
+errors. No IP-location service, external geocoder or fixed-city fallback was
+added. Automated device responses and rendered recovery states are tested;
+physical device positioning and the owner's OS permissions remain unverified.
+
 At the owner's request, the Bengaluru-only presentation and nearby discovery
 limit have been removed for development. Arbitrary city/area searches and city
 pages are accepted; suggested cities are shortcuts, not a whitelist. Approved

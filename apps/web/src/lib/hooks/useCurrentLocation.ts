@@ -1,21 +1,32 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { LocationCoordinates } from "@/lib/locations";
+import { locationErrorMessage, requestCurrentLocation } from "@/lib/geolocation";
 
 export function useCurrentLocation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const fetchLocation = useCallback(async (): Promise<LocationCoordinates | null> => {
-    setLoading(true); setError("");
-    try {
-      if (!("geolocation" in navigator)) throw new Error("Location unavailable");
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 }));
-      return { latitude: position.coords.latitude, longitude: position.coords.longitude };
-    } catch {
-      setError("We couldn’t access your location. Choose a city or enter coordinates below.");
-      return null;
-    } finally { setLoading(false); }
+  const generation = useRef(0);
+  const pending = useRef<Promise<LocationCoordinates | null> | null>(null);
+  useEffect(() => () => { generation.current++; }, []);
+  const clearLocationRequest = useCallback(() => {
+    generation.current++; pending.current=null; setLoading(false); setError("");
   }, []);
-  return { loading, error, fetchLocation };
+  const fetchLocation = useCallback((): Promise<LocationCoordinates | null> => {
+    if (pending.current) return pending.current;
+    const requestId=++generation.current;
+    setLoading(true); setError("");
+    const request=requestCurrentLocation(navigator.geolocation, window.isSecureContext).then(location =>
+      requestId === generation.current ? location : null
+    ).catch(error => {
+      if (requestId === generation.current) setError(locationErrorMessage(error));
+      return null;
+    }).finally(() => {
+      if (requestId === generation.current) { pending.current=null; setLoading(false); }
+    });
+    pending.current=request;
+    return request;
+  }, []);
+  return { loading, error, fetchLocation, clearLocationRequest };
 }
