@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { backendConfig, backendEnabled } from "@/lib/backend/config";
 
 export async function proxy(request: NextRequest) {
+  // Public map responses contain no account data. Avoid an Auth round trip
+  // for every tile and let the map routes apply their own cache/abuse policy.
+  if (request.nextUrl.pathname.startsWith("/api/maps/")) return NextResponse.next();
   if (!backendEnabled) return NextResponse.next();
   const { url, key } = backendConfig();
   let response = NextResponse.next({ request });
