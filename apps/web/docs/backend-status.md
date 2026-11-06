@@ -160,6 +160,8 @@ for the verified deployment result.
   recovery path. Automated session tests cover success, pending sign-out,
   sign-out failure, and unauthenticated access.
 - Email signup/sign-in, resend and recovery implementations were reviewed;
+  existing-password login no longer applies the new-signup minimum length
+  before Supabase can validate an existing account's password.
   valid, cancelled and expired callback paths have automated coverage. This
   is not proof of real email delivery or a real password change. Arbitrary
   public email signup/confirmation/reset delivery still requires a configured
