@@ -2,6 +2,7 @@ import { backendEnabled } from "@/lib/backend/config";
 import { remote } from "@/lib/backend/browser";
 import { get, newId, set } from "../client";
 import { DEFAULT_COMMISSION_RATE } from "../../business";
+import { isDevelopmentProviderId } from "../../development-providers";
 import type { Booking, BookingStatus, BookingType } from "../types";
 
 const KEY = "bookings";
@@ -83,7 +84,10 @@ export interface CreateBookingInput {
 }
 
 // Backend adapters
-export const createBooking: typeof demo_createBooking = (...args) => backendEnabled ? remote("bookings.createBooking", args) : demo_createBooking(...args);
+export const createBooking: typeof demo_createBooking = (...args) => {
+  if(isDevelopmentProviderId(args[0].providerId)) return Promise.reject(new Error("Demo profiles cannot be booked."));
+  return backendEnabled ? remote("bookings.createBooking", args) : demo_createBooking(...args);
+};
 export const listBookingsForFamily: typeof demo_listBookingsForFamily = (...args) => backendEnabled ? remote("bookings.listBookingsForFamily", args) : demo_listBookingsForFamily(...args);
 export const listBookingsForProvider: typeof demo_listBookingsForProvider = (...args) => backendEnabled ? remote("bookings.listBookingsForProvider", args) : demo_listBookingsForProvider(...args);
 export const listAllBookings: typeof demo_listAllBookings = (...args) => backendEnabled ? remote("bookings.listAllBookings", args) : demo_listAllBookings(...args);

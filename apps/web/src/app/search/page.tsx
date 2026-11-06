@@ -15,6 +15,7 @@ import type { ProviderType } from "@/lib/storage/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VerificationChip } from "@/components/verification/VerificationChip";
 import { ProviderAvatar } from "@/components/ui/ProviderAvatar";
+import { DevelopmentProviderGallery } from "@/components/providers/DevelopmentProviderGallery";
 
 const TYPE_LABEL: Record<ProviderType, string> = { caregiver: "caregiver", babysitter: "babysitter" };
 const CARE_IMAGES = ["elder-care-checkin", "caregiver-arrival", "hero-family-care", "caregiver-walk"];
@@ -86,6 +87,8 @@ function SearchResults() {
         <label className="flex min-h-tap min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-surface px-3"><SearchIcon className="h-4 w-4 shrink-0 text-text-secondary" /><span className="sr-only">Search providers by name or care needs</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name or care needs" className="min-w-0 flex-1 bg-transparent py-2 text-base text-text-primary placeholder:text-text-secondary" /></label>
         <label className="flex items-center gap-2 text-sm text-text-secondary">Sort by<select value={sort} onChange={(event) => setSort(event.target.value)} className="min-h-tap flex-1 rounded-md border border-border bg-surface px-3 text-sm text-text-primary lg:flex-none"><option value="distance">{city ? "Nearest to city centre" : "Name A–Z"}</option><option value="rating">Highest rated</option></select></label>
       </div>
+
+      <DevelopmentProviderGallery type={serviceType} query={query} />
 
       {!loading && (
         <p className="text-sm text-text-secondary">

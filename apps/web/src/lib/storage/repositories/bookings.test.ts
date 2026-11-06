@@ -28,6 +28,11 @@ describe("bookings repository", () => {
   beforeAll(installLocalStorageMock);
   beforeEach(clearLocalStorage);
 
+  it("never creates a booking for fictional development profiles", async () => {
+    await expect(createBooking({...INPUT,providerId:"demo-carekin-caregiver-01"})).rejects.toThrow("Demo profiles cannot be booked");
+    expect(await listBookingsForFamily(INPUT.familyId)).toEqual([]);
+  });
+
   it("creates a booking in requested status with 18% commission recorded", async () => {
     const booking = await createBooking(INPUT);
     expect(booking.status).toBe("requested");

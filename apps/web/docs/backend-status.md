@@ -172,6 +172,26 @@ for the verified deployment result.
 
 ## All-location development access (4 November)
 
+### Fictional provider catalog (6 November)
+
+- Owner approved 10 fictional caregivers plus 10 fictional babysitters, shown
+  across every location for development testing. IDs are
+  `demo-carekin-caregiver-01` through `-10` and
+  `demo-carekin-babysitter-01` through `-10`.
+- Search displays a separate demo gallery; every card and detail page states
+  "Demo profile—not a verified real provider". Existing AI-generated care
+  scenes are illustrative, not identity portraits. No invented ratings,
+  reviews, screening outcomes, prices or real availability are attached.
+- These are source-controlled preview fixtures, **not Supabase provider rows,
+  login accounts, documents or approved applications**. The real approval
+  query and its count remain separate and unchanged.
+- `/demo-providers/[id]` pages are noindex. The booking layout blocks direct
+  links to any `demo-carekin-` booking step, and `createBooking` rejects the
+  same IDs before contacting Supabase or writing local storage. No fake
+  UUID/provider records were inserted into the real booking database.
+- Disable `SHOW_DEVELOPMENT_PROVIDERS` in
+  `src/lib/development-providers.ts` before a public service launch.
+
 Location request hardening (6 November): the shared family/provider picker
 accepts a device fix cached for at most one minute, then retries a temporary
 failure once with a fresh high-accuracy request (15 + 20 second acquisition
