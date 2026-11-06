@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       path = "/v1/geocode/reverse"; params = { lat: String(input.latitude), lon: String(input.longitude), format: "json", lang: "en", limit: "1" };
     } else return Response.json({ error: "Enter a valid address or location." }, { status: 400, headers });
     const response = await providerMapFetch(request, path, params);
-    if (!response.ok) return Response.json({ error: response.status === 429 ? "Address service is busy. Wait a moment and try again." : "Address lookup is unavailable. Try again or use manual entry." }, { status: response.status === 429 ? 429 : 502, headers });
+    if (!response.ok) return Response.json({ error: response.status === 429 ? "Address service is busy. Wait a moment and try again." : "Address lookup is unavailable. Try again or use manual entry." }, { status: response.status === 429 ? 429 : 502, headers: { ...headers, "X-Map-Provider-Status": String(response.status) } });
     return Response.json(await response.json(), { headers });
   } catch { return Response.json({ error: "We couldn’t look up this address. Check your connection and try again." }, { status: 502, headers }); }
 }

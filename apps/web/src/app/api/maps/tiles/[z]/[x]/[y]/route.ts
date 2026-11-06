@@ -9,7 +9,7 @@ export async function GET(request: Request, context: { params: Promise<{ z: stri
   try {
     const retina = new URL(request.url).searchParams.get("retina") === "1" ? "@2x" : "";
     const response = await providerMapFetch(request, `/v1/tile/osm-bright/${z}/${x}/${y}${retina}.png`, {}, true);
-    if (!response.ok || !response.headers.get("content-type")?.startsWith("image/png")) return new Response(null, { status: response.status === 429 ? 429 : 502 });
+    if (!response.ok || !response.headers.get("content-type")?.startsWith("image/png")) return new Response(null, { status: response.status === 429 ? 429 : 502, headers: { "X-Map-Provider-Status": String(response.status) } });
     const bytes = await response.arrayBuffer();
     if (bytes.byteLength > 2 * 1024 * 1024) return new Response(null, { status: 502 });
     return new Response(bytes, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400, s-maxage=86400", "X-Content-Type-Options": "nosniff" } });
