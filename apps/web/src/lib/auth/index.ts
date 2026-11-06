@@ -76,9 +76,11 @@ export function loginAsRole(phone: string, role: UserRole): CurrentUser {
   return user;
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
   if (backendEnabled) {
-    void supabaseBrowser().auth.signOut().then(() => { commitUser(null); window.location.assign("/"); });
+    const { error } = await supabaseBrowser().auth.signOut();
+    if (error) throw error;
+    commitUser(null);
     return;
   }
   remove(KEY);

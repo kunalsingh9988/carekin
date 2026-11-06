@@ -16,7 +16,7 @@ real provider verification, review or financial history.
 
 | Area | Implemented behavior |
 | --- | --- |
-| Authentication | Real email/password sign-in and signup, Google OAuth initiation and PKCE callback, confirmation resend, password recovery/reset UI, cookie-session refresh and logout. Google callback registration is corrected; its invalid client secret still needs replacement (see below). Demo login/role switching disabled in backend mode. |
+| Authentication | Real email/password sign-in and signup, Google OAuth with PKCE, confirmation resend, password recovery/reset UI, cookie-session refresh and logout. Google login, first enrollment and session persistence verified live on 6 November. Public email delivery still needs sender configuration and mailbox verification (see below). Demo login/role switching disabled in backend mode. |
 | Authorization | Private account roles, protected routes, database-enforced ownership checks and role gates; no public administrator signup. |
 | Families | Persistent profiles, elder/child recipients, recorded guardian checkbox consent and consent withdrawal with upcoming-visit cancellation/contact restriction. |
 | Providers | Persistent applications, editable public profile, weekly availability, pending/approved/rejected state and verification history. |
@@ -146,10 +146,25 @@ for the verified deployment result.
   existing users retain their database role. A URL hint never grants admin.
 - The callback preserves safe internal booking destinations and routes expired
   or cancelled links back to a recovery-capable sign-in screen. It is not cached.
-- A complete Google account sign-in is **not verified** until the client secret
-  is corrected and the consent/return flow passes. Built-in email
-  delivery restrictions still apply; arbitrary public email signup requires a
-  configured mail sender. Google sign-in does not use that SMTP service.
+- On 6 November, after the owner saved the matching Google client secret,
+  live Google sign-in succeeded through the PKCE callback and a verified session.
+  The first-time account was enrolled as family and reached `/family/onboarding`;
+  a reload restored that session. No care profile/address was entered. The
+  family session was redirected away from `/admin` to its own dashboard.
+- The owner-provided screenshot exposed the newly saved Google secret. Rotate
+  that new secret and update Supabase directly; preserve the older shared
+  secret. Never store either value in the repository or status reports.
+- Authentication hardening: logout now waits for Supabase and reports failures
+  without pretending the user is signed out; password reset checks for a valid
+  session before showing its form and provides a clear missing/expired-session
+  recovery path. Automated session tests cover success, pending sign-out,
+  sign-out failure, and unauthenticated access.
+- Email signup/sign-in, resend and recovery implementations were reviewed;
+  valid, cancelled and expired callback paths have automated coverage. This
+  is not proof of real email delivery or a real password change. Arbitrary
+  public email signup/confirmation/reset delivery still requires a configured
+  sender and mailbox tests. Phone OTP remains disabled, not simulated or
+  bypassed. Google sign-in does not use the SMTP service.
 - Main-site promotion was explicitly approved by the owner, including replacing
   demo records with real Supabase records and keeping payments disabled.
 

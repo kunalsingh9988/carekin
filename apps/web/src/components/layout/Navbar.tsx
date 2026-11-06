@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { isDemoUser, logout, useCurrentUser } from "@/lib/auth";
 import type { CurrentUser } from "@/lib/storage/types";
@@ -51,16 +50,24 @@ const ROLE_LINKS: Record<CurrentUser["role"], { href: string; label: string }[]>
 };
 
 export function Navbar() {
-  const router = useRouter();
   const { open } = useAuthModal();
   const user = useCurrentUser();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [authError, setAuthError] = useState("");
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (signingOut) return;
     setMenuOpen(false);
-    logout();
-    router.push("/");
-    router.refresh();
+    setSigningOut(true); setAuthError("");
+    try {
+      await logout();
+      // A full navigation discards protected client state only after sign-out.
+      window.location.assign("/");
+    } catch {
+      setAuthError("We couldn’t log you out. Please check your connection and try again.");
+      setSigningOut(false);
+    }
   }
 
   const links = !user ? PUBLIC_LINKS : user.role === "family" ? [PUBLIC_LINKS[0], ...ROLE_LINKS.family] : ROLE_LINKS[user.role];
@@ -92,8 +99,8 @@ export function Navbar() {
                 </span>
               )}
               <NotificationBell userId={user.id} />
-              <button onClick={handleLogout} className="min-h-tap hidden rounded-md px-3 text-sm font-medium text-text-secondary md:block">
-                Log out
+              <button disabled={signingOut} onClick={handleLogout} className="min-h-tap hidden rounded-md px-3 text-sm font-medium text-text-secondary md:block">
+                {signingOut ? "Logging out…" : "Log out"}
               </button>
             </>
           ) : (
@@ -128,12 +135,13 @@ export function Navbar() {
             </Link>
           ))}
           {user && (
-            <button onClick={handleLogout} className="min-h-tap flex items-center rounded-md px-2 text-left text-sm font-medium text-text-secondary">
-              Log out
+            <button disabled={signingOut} onClick={handleLogout} className="min-h-tap flex items-center rounded-md px-2 text-left text-sm font-medium text-text-secondary">
+              {signingOut ? "Logging out…" : "Log out"}
             </button>
           )}
         </nav>
       )}
+      {authError && <p role="alert" className="mx-auto max-w-6xl pt-2 text-sm text-danger">{authError}</p>}
     </header>
   );
 }
