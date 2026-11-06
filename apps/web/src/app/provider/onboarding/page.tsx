@@ -8,7 +8,7 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
 import type { LocationCoordinates } from "@/lib/locations";
 import { createProviderProfile, getMyProvider, getDocuments } from "@/lib/storage/repositories/providers";
-import { ProviderProfileSchema, type ProviderProfileFormValues } from "@/lib/validation/schemas";
+import { ProviderProfileSchema, providerPhoneDefault, type ProviderProfileFormValues } from "@/lib/validation/schemas";
 import { Button } from "@/components/ui/Button";
 import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { TextField, TextAreaField, SelectField } from "@/components/ui/FormField";
@@ -23,10 +23,11 @@ export default function ProviderOnboardingPage() {
     control,
     handleSubmit,
     setValue,
+    getFieldState,
     formState: { errors, isSubmitting },
   } = useForm<ProviderProfileFormValues>({
     resolver: zodResolver(ProviderProfileSchema),
-    defaultValues: { type: "caregiver", serviceRadiusKm: 5, phone: user?.phone ?? "+91" },
+    defaultValues: { type: "caregiver", serviceRadiusKm: 5, phone: providerPhoneDefault(user?.phone) },
   });
   const careType = useWatch({ control, name: "type" });
 
@@ -34,13 +35,13 @@ export default function ProviderOnboardingPage() {
     if (!user) return;
     // Pre-fill the phone once the session resolves — defaultValues is
     // captured on first render, before useRequireRole finishes.
-    setValue("phone", user.phone);
+    if (!getFieldState("phone").isDirty) setValue("phone", providerPhoneDefault(user.phone));
     getMyProvider(user.id).then(async (p) => {
       if (!p) return;
       const documents = await getDocuments(p.id);
       router.replace(documents.some((doc) => doc.type === "id_proof") && documents.some((doc) => doc.type === "address_proof") ? "/provider/verification-status" : "/provider/onboarding/documents");
     });
-  }, [user, router, setValue]);
+  }, [user, router, setValue, getFieldState]);
 
   useEffect(() => {
     if (coords) {

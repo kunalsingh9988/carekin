@@ -5,6 +5,10 @@
 import { z } from "zod";
 
 export const PhoneNumber = z.string().regex(/^\+[1-9]\d{7,14}$/, "Enter a valid phone number, e.g. +919876543210");
+export function providerPhoneDefault(value?: string): string {
+  const result=PhoneNumber.safeParse(value?.trim());
+  return result.success ? result.data : "+91";
+}
 
 export const UserRole = z.enum(["family", "provider", "admin"]);
 export type UserRoleValue = z.infer<typeof UserRole>;

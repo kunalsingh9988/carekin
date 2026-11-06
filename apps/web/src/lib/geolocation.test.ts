@@ -5,19 +5,19 @@ function device() {
   const getCurrentPosition=vi.fn();
   return { getCurrentPosition, api: { getCurrentPosition } as unknown as Geolocation };
 }
-const position={coords:{latitude:0,longitude:-74}} as GeolocationPosition;
+const position={coords:{latitude:0,longitude:-74,accuracy:25},timestamp:1793980000000} as GeolocationPosition;
 describe("device location requests", () => {
-  it("accepts zero/negative coordinates and a recent low-power location", async () => {
+  it("requests fresh coordinates and preserves device accuracy and timestamp", async () => {
     const {api,getCurrentPosition}=device();
     getCurrentPosition.mockImplementationOnce(success => success(position));
-    expect(await requestCurrentLocation(api,true)).toEqual({latitude:0,longitude:-74});
-    expect(getCurrentPosition.mock.calls[0][2]).toEqual({enableHighAccuracy:false,maximumAge:60_000,timeout:15_000});
+    expect(await requestCurrentLocation(api,true)).toEqual({latitude:0,longitude:-74,accuracyMeters:25,capturedAt:1793980000000});
+    expect(getCurrentPosition.mock.calls[0][2]).toEqual({enableHighAccuracy:false,maximumAge:0,timeout:15_000});
   });
   it.each([2,3])("retries a temporary failure (%s) with a fresh high-accuracy fix", async code => {
     const {api,getCurrentPosition}=device();
     getCurrentPosition.mockImplementationOnce((_success,error) => error({code}));
     getCurrentPosition.mockImplementationOnce(success => success(position));
-    expect(await requestCurrentLocation(api,true)).toEqual({latitude:0,longitude:-74});
+    expect(await requestCurrentLocation(api,true)).toMatchObject({latitude:0,longitude:-74});
     expect(getCurrentPosition.mock.calls[1][2]).toEqual({enableHighAccuracy:true,maximumAge:0,timeout:20_000});
   });
   it("never retries or bypasses denied permission", async () => {

@@ -1,19 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { LocationCoordinates } from "@/lib/locations";
-import { locationErrorMessage, requestCurrentLocation } from "@/lib/geolocation";
+import { locationErrorMessage, requestCurrentLocation, type DeviceLocation } from "@/lib/geolocation";
 
 export function useCurrentLocation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const generation = useRef(0);
-  const pending = useRef<Promise<LocationCoordinates | null> | null>(null);
+  const pending = useRef<Promise<DeviceLocation | null> | null>(null);
   useEffect(() => () => { generation.current++; }, []);
   const clearLocationRequest = useCallback(() => {
     generation.current++; pending.current=null; setLoading(false); setError("");
   }, []);
-  const fetchLocation = useCallback((): Promise<LocationCoordinates | null> => {
+  const fetchLocation = useCallback((): Promise<DeviceLocation | null> => {
     if (pending.current) return pending.current;
     const requestId=++generation.current;
     setLoading(true); setError("");

@@ -193,7 +193,7 @@ for the verified deployment result.
   `src/lib/development-providers.ts` before a public service launch.
 
 Location request hardening (6 November): the shared family/provider picker
-accepts a device fix cached for at most one minute, then retries a temporary
+requests a fresh device fix, then retries a temporary
 failure once with a fresh high-accuracy request (15 + 20 second acquisition
 timeouts). Permission denial is never retried or bypassed. Errors distinguish
 denied permission, unavailable services, timeout, unsupported browsers and
@@ -202,6 +202,15 @@ selection invalidate pending results, and selecting a fallback clears stale
 errors. No IP-location service, external geocoder or fixed-city fallback was
 added. Automated device responses and rendered recovery states are tested;
 physical device positioning and the owner's OS permissions remain unverified.
+
+Follow-up location UX: a successful device request now displays "Device location
+detected", six-decimal coordinates, accuracy (when available), capture time and
+a refresh action. Approximate city-centre and manual results are distinguished
+from device results. `/location-check` is a public, noindex diagnostic page
+using the identical shared picker, with no profile writes or remote geocoder.
+The provider phone prefill now accepts only valid phone values; Google/email
+identities no longer populate an email address into that required phone field,
+and session refresh does not overwrite a phone field the user has edited.
 
 At the owner's request, the Bengaluru-only presentation and nearby discovery
 limit have been removed for development. Arbitrary city/area searches and city
