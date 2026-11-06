@@ -78,7 +78,7 @@ function SearchResults() {
         <Link href="/how-it-works" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-accent-text"><ShieldCheck className="h-5 w-5" /> How we verify providers</Link>
       </div>
 
-      <div className="flex flex-col gap-4 rounded-lg bg-surface-secondary p-4 lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
       <div className="flex gap-2 lg:w-80 lg:shrink-0">
         <TypeChip label="Elder care" active={serviceType === "caregiver"} onClick={() => setServiceType("caregiver")} />
         <TypeChip label="Babysitting" active={serviceType === "babysitter"} onClick={() => setServiceType("babysitter")} />
