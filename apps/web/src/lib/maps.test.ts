@@ -30,7 +30,8 @@ describe("Geoapify client requests", () => {
     const { reverseAddress } = await import("./maps");
     const result = await reverseAddress({ latitude: 12.97, longitude: 77.59 }, new AbortController().signal);
     expect(result.latitude).toBe(12.97); expect(result.longitude).toBe(77.59);
-    expect(String(fetchMock.mock.calls[0][0])).toContain("/reverse?");
+    expect(String(fetchMock.mock.calls[0][0])).toBe("/api/maps/address");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).kind).toBe("reverse");
   });
   it("reports quota failure without reflecting raw provider bodies or keys", async () => {
     vi.stubEnv("NEXT_PUBLIC_GEOAPIFY_API_KEY", "synthetic-unit-test-key"); vi.resetModules();
@@ -38,11 +39,10 @@ describe("Geoapify client requests", () => {
     const { searchAddresses } = await import("./maps");
     await expect(searchAddresses("Bengaluru", new AbortController().signal)).rejects.toThrow("Wait a moment");
   });
-  it("requires a configured provider rather than fabricating an address", async () => {
-    vi.stubEnv("NEXT_PUBLIC_GEOAPIFY_API_KEY", ""); vi.resetModules();
-    const fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock);
+  it("does not fabricate an address when the server provider is unavailable", async () => {
+    vi.resetModules();
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503 }); vi.stubGlobal("fetch", fetchMock);
     const { searchAddresses } = await import("./maps");
-    await expect(searchAddresses("Bengaluru", new AbortController().signal)).rejects.toThrow("not connected");
-    expect(fetchMock).not.toHaveBeenCalled();
+    await expect(searchAddresses("Bengaluru", new AbortController().signal)).rejects.toThrow("couldn’t look up");
   });
 });

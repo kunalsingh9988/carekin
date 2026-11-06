@@ -3,6 +3,7 @@
   "ui": "tui",
   "tasks": {
     "build": {
+      "env": ["GEOAPIFY_API_KEY"],
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },

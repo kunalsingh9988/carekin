@@ -1,7 +1,6 @@
 import { parseCoordinates, type LocationCoordinates } from "./locations";
 
 export type AddressPlace = LocationCoordinates & { id: string; formatted: string; line1: string; line2: string };
-export const geoapifyKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY?.trim() || "";
 class LookupFailure extends Error {}
 
 function text(value: unknown, limit = 1000) { return typeof value === "string" ? value.trim().slice(0, limit) : ""; }
@@ -22,15 +21,14 @@ export function confirmedAddress(place: AddressPlace, unit: string, landmark: st
 }
 
 async function lookup(kind: "autocomplete" | "reverse", params: Record<string, string>, signal: AbortSignal): Promise<AddressPlace[]> {
-  if (!geoapifyKey) throw new Error("Address search is not connected yet. Use the manual location options instead.");
   const controller = new AbortController();
   const abort = () => controller.abort();
   signal.addEventListener("abort", abort, { once: true });
   if (signal.aborted) controller.abort();
   const timer = setTimeout(abort, 12000);
   try {
-    const query = new URLSearchParams({ ...params, apiKey: geoapifyKey, format: "json", lang: "en", limit: "5" });
-    const response = await fetch(`https://api.geoapify.com/v1/geocode/${kind}?${query}`, { signal: controller.signal, referrerPolicy: "strict-origin" });
+    const body = kind === "autocomplete" ? { kind, text: params.text } : { kind, latitude: Number(params.lat), longitude: Number(params.lon) };
+    const response = await fetch("/api/maps/address", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: controller.signal });
     if (!response.ok) throw new LookupFailure(response.status === 429 ? "Address lookup is busy. Wait a moment and try again." : response.status === 401 || response.status === 403 ? "Map access is unavailable. Please use manual location entry or contact support." : "We couldn’t look up this address. Please try again.");
     return parseAddressPlaces(await response.json());
   } catch (error) {

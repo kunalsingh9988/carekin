@@ -1,16 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CITIES, getCityBySlug } from "@/lib/cities";
 import { parseCoordinates, type LocationCoordinates } from "@/lib/locations";
 import { useCurrentLocation } from "@/lib/hooks/useCurrentLocation";
 import { Button } from "@/components/ui/Button";
 import type { DeviceLocation } from "@/lib/geolocation";
-import { geoapifyKey } from "@/lib/maps";
 import { AddressPicker } from "./AddressPicker";
 
 type Props = { value: LocationCoordinates | null; address?: string; onChange: (value: LocationCoordinates | null) => void; onAddressConfirmed?: (address: string) => void };
 export function LocationPicker(props: Props) {
-  if (!geoapifyKey) return <CoordinatePicker value={props.value} onChange={props.onChange} />;
+  const [mapsEnabled, setMapsEnabled] = useState<boolean | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/maps/status", { signal: controller.signal }).then(response => response.ok ? response.json() : { enabled: false }).then(data => setMapsEnabled(data.enabled === true)).catch(() => { if (!controller.signal.aborted) setMapsEnabled(false); });
+    return () => controller.abort();
+  }, []);
+  if (mapsEnabled === null) return <p role="status" className="text-sm text-text-secondary">Loading location options…</p>;
+  if (!mapsEnabled) return <CoordinatePicker value={props.value} onChange={props.onChange} />;
   return <div className="grid min-w-0 gap-4"><AddressPicker {...props} /><details className="text-sm"><summary className="min-h-tap cursor-pointer py-3 text-accent-text">Use manual coordinates or a city centre instead</summary><div className="mt-3"><CoordinatePicker value={props.value} onChange={props.onChange} /></div></details></div>;
 }
 

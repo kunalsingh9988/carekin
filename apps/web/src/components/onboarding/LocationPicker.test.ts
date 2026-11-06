@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 const state=vi.hoisted(() => ({loading:false,error:"",fetchLocation:vi.fn(),clearLocationRequest:vi.fn()}));
 vi.mock("@/lib/hooks/useCurrentLocation", () => ({useCurrentLocation:()=>state}));
-import { LocationPicker } from "./LocationPicker";
+import { CoordinatePicker as LocationPicker } from "./LocationPicker";
 describe("location recovery interface", () => {
   it("offers permission help and retry beside the failing action", () => {
     state.loading=false; state.error="Location access is blocked.";

@@ -2,10 +2,10 @@
 
 ## Address selection — 7 November 2026
 
-- With `NEXT_PUBLIC_GEOAPIFY_API_KEY` configured, the shared location picker offers GPS → reverse-geocoded address, debounced address suggestions, a real Leaflet map with a fixed centre pin, separate optional flat/landmark inputs and explicit confirmation. Opening the picker discloses Geoapify requests; no map loads merely from viewing a saved profile.
+- With server-only `GEOAPIFY_API_KEY` configured, the shared location picker offers GPS → reverse-geocoded address, debounced address suggestions, a real Leaflet map with a fixed centre pin, separate optional flat/landmark inputs and explicit confirmation. Opening the picker discloses Geoapify requests; no map loads merely from viewing a saved profile.
 - Cancellation preserves the parent form. Confirmation updates coordinates and family/booking/account address text only in the current form; the existing save/continue action persists it. Provider applications retain their existing coordinate-based service-area schema rather than adding a public home-address field.
 - Search/GPS/movement cancel stale requests. The chosen pin is never silently snapped to a reverse-geocoder's nearest building. Accuracy remains device-dependent; flat/floor details require user input. Old city/manual-coordinate controls remain under advanced options, and stay available if maps are not configured.
-- Browser API key must be restricted to approved website origins in Geoapify. Free quota and provider failures are handled; no paid plan was selected. Required Geoapify, OpenStreetMap and OpenMapTiles attribution remains visible. Real-device/map validation results must be distinguished from mocked unit tests.
+- Same-origin CareKin address/tile gateways keep the Geoapify key out of client bundles. Address queries use POST rather than browser URLs; tile responses are cached. Per-instance abuse guards are best-effort, not a distributed global quota; Geoapify's global account limits remain authoritative. Free quota/provider failures are handled; no paid plan was selected. Required Geoapify, OpenStreetMap and OpenMapTiles attribution remains visible. Real-device/map validation results must be distinguished from mocked unit tests.
 
 ## Account profile and private photos — 6 November 2026
 
