@@ -112,6 +112,18 @@ export function loginAsDemo(role: UserRole): CurrentUser {
   return user;
 }
 
+// Self-service family↔provider switching. Profiles live in separate tables
+// keyed by user_id, so switching preserves each side's records — the
+// provider application and family details are still there when you switch
+// back. Admin can never be reached this way, in either mode.
+export async function switchRole(role: "family" | "provider"): Promise<CurrentUser> {
+  if (!backendEnabled) return loginAsDemo(role);
+  const account = await remote<CurrentUser | null>("auth.switchRole", [role]);
+  if (!account) throw new Error("Role switching is only available to family and provider accounts.");
+  await refreshCurrentUser();
+  return account;
+}
+
 export async function refreshCurrentUser(): Promise<CurrentUser | null> {
   if (!backendEnabled) return getCurrentUser();
   const { data: { user } } = await supabaseBrowser().auth.getUser();

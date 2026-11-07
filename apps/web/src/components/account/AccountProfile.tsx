@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Camera, Upload } from "lucide-react";
-import { refreshCurrentUser, saveAccountDetails, saveAccountPhoto, useCurrentUser } from "@/lib/auth";
+import { refreshCurrentUser, saveAccountDetails, saveAccountPhoto, switchRole, useCurrentUser } from "@/lib/auth";
 import { AccountDetailsSchema } from "@/lib/auth/profile";
 import { preparePhoto } from "@/lib/auth/avatar";
 import { backendEnabled } from "@/lib/backend/config";
@@ -79,6 +79,7 @@ function ProfileContent({ user }: { user: CurrentUser }) {
         <nav aria-label="Profile sections" className="mt-6 grid border-t border-border pt-4">
           <a href="#personal" className="min-h-tap py-3 text-sm font-medium">Personal details &amp; photo</a>
           <a href="#care" className="min-h-tap py-3 text-sm font-medium">{user.role === "family" ? "Family & care details" : user.role === "provider" ? "Professional profile" : "Administration"}</a>
+          <a href="#mode" className="min-h-tap py-3 text-sm font-medium">How you use CareKin</a>
           <a href="#security" className="min-h-tap py-3 text-sm font-medium">Sign-in &amp; security</a>
           <a href="#preferences" className="min-h-tap py-3 text-sm font-medium">Preferences &amp; support</a>
         </nav>
@@ -95,6 +96,7 @@ function ProfileContent({ user }: { user: CurrentUser }) {
             <LinkButton href="/family/settings" variant="secondary" className="mt-4">Manage care recipients &amp; consent</LinkButton>
           </> : <><p className="mb-4 text-text-secondary">Add your family and address to finish setting up your care profile.</p><LinkButton href="/family/onboarding">Complete family profile</LinkButton></> : user.role === "provider" ? provider ? <ProviderDetails initial={provider} /> : <><p className="mb-4 text-text-secondary">Introduce yourself and submit your documents to begin the provider review process.</p><LinkButton href="/provider/onboarding">Complete provider profile</LinkButton></> : <><p className="text-text-secondary">Your administrator role is assigned privately. It cannot be changed from this page.</p><div className="mt-4 flex flex-wrap gap-3"><LinkButton href="/admin/verification-queue" variant="secondary">Provider verification queue</LinkButton><LinkButton href="/admin/safety" variant="secondary">Safety reports</LinkButton></div></>}
         </section>
+        <section id="mode" className="scroll-mt-32 border-t border-border pt-8"><h2 className="text-2xl font-semibold">How you use CareKin</h2><ModeSwitch user={user} /></section>
         <section id="security" className="scroll-mt-32 border-t border-border pt-8"><h2 className="text-2xl font-semibold">Sign-in &amp; security</h2>
           <dl className="mt-4 divide-y divide-border text-sm"><Detail label="Email address" value={user.email || "No email on this account"} /><Detail label="Email confirmation" value={user.email ? user.email_verified ? "Confirmed" : "Not confirmed" : "Not applicable"} /><Detail label="Sign-in methods" value={user.auth_providers?.join(", ") || (backendEnabled ? "Not available" : "Demo session")} /><Detail label="Last sign-in" value={date(user.last_sign_in_at)} /><Detail label="Account ID" value={user.id} /></dl>
           <p className="my-4 text-sm text-text-secondary">Google passwords are managed by Google. Open sign-in and choose “Forgot password?” to request email recovery. Delivery depends on the configured email service.</p><LinkButton href="/sign-in" variant="secondary">Email &amp; password help</LinkButton>
@@ -105,6 +107,32 @@ function ProfileContent({ user }: { user: CurrentUser }) {
       </div>
     </div>
   </main>;
+}
+
+const MODES = [
+  { role: "family" as const, label: "Book care", hint: "Find and arrange care for your family" },
+  { role: "provider" as const, label: "Provide care", hint: "Offer elder care or babysitting to families" },
+];
+function ModeSwitch({ user }: { user: CurrentUser }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false), [error, setError] = useState("");
+  async function choose(role: "family" | "provider") {
+    if (role === user.role || busy) return;
+    setBusy(true); setError("");
+    try { await switchRole(role); router.push(`/${role}`); router.refresh(); }
+    catch (e) { setError(message(e)); setBusy(false); }
+  }
+  if (user.role === "admin") return <p className="mt-2 text-sm text-text-secondary">Administrator access is assigned privately and can&apos;t be changed from this page.</p>;
+  return <div className="mt-4">
+    <div role="radiogroup" aria-label="How you use CareKin" className="grid gap-2 sm:grid-cols-2">
+      {MODES.map((m) => <button key={m.role} type="button" role="radio" aria-checked={user.role === m.role} disabled={busy} onClick={() => void choose(m.role)} className={`min-h-tap rounded-lg border p-4 text-left transition-colors ${user.role === m.role ? "border-accent bg-accent-tint" : "border-border hover:border-accent"}`}>
+        <span className="font-semibold">{m.label}{busy && user.role !== m.role ? "…" : ""}</span>
+        <span className="mt-1 block text-sm text-text-secondary">{m.hint}</span>
+      </button>)}
+    </div>
+    <p className="mt-3 text-sm text-text-secondary">Switching is instant and keeps both sides safe — your provider application and your family details stay saved, and you can switch back anytime.</p>
+    {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
+  </div>;
 }
 
 function Detail({ label, value }: { label: string; value: string }) { return <div className="grid gap-1 py-4 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4"><dt className="text-text-secondary">{label}</dt><dd className="min-w-0 break-words font-medium [overflow-wrap:anywhere]">{value}</dd></div>; }
