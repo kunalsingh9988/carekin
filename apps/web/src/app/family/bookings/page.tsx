@@ -9,6 +9,7 @@ import { listBookingsForFamily } from "@/lib/storage/repositories/bookings";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import type { Booking, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
 
@@ -19,6 +20,7 @@ export default function FamilyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [providers, setProviders] = useState<Record<string, Provider>>({});
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -30,10 +32,11 @@ export default function FamilyBookingsPage() {
         [...new Set(list.map((b) => b.provider_id))].map(async (id) => [id, await getProvider(id)] as const),
       );
       setProviders(Object.fromEntries(entries.filter(([, p]) => p) as [string, Provider][]));
-    });
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load your bookings."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
 
   const filtered = bookings.filter((b) => (tab === "upcoming" ? UPCOMING.includes(b.status) : !UPCOMING.includes(b.status)));
 

@@ -5,19 +5,22 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getMyProvider } from "@/lib/storage/repositories/providers";
 import type { Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { LinkButton } from "@/components/ui/Button";
 import { VerificationChip } from "@/components/verification/VerificationChip";
 
 export default function ProviderSettingsPage() {
   const user = useRequireRole("provider");
   const [provider, setProvider] = useState<Provider | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
-    getMyProvider(user.id).then(setProvider);
+    getMyProvider(user.id).then(setProvider).catch((e) => setError(e instanceof Error ? e.message : "Unable to load settings."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
 
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">

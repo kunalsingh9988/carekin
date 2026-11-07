@@ -12,6 +12,7 @@ import { getFamilyProfile, saveFamilyProfile, addElderRecipient, addChildRecipie
 import type { CareRecipientType, FamilyProfile } from "@/lib/storage/types";
 import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
 import { Button } from "@/components/ui/Button";
+import { LoadError } from "@/components/ui/LoadError";
 import { Card } from "@/components/ui/Card";
 import { TextField, TextAreaField } from "@/components/ui/FormField";
 
@@ -57,10 +58,11 @@ export default function FamilyOnboardingPage() {
         } else router.replace("/family");
       }
       setChecked(true);
-    });
+    }).catch((e) => { setError(e instanceof Error ? e.message : "Unable to load onboarding."); setChecked(true); });
   }, [user, router]);
 
   if (!user || !checked) return null;
+  if (error && !family) return <LoadError error={error} />;
   if (existing) return null;
 
   async function handleAbout(e: React.FormEvent) {

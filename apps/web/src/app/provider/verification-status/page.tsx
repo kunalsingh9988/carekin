@@ -7,6 +7,7 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getMyProvider, getVerificationStatus } from "@/lib/storage/repositories/providers";
 import type { Provider, VerificationReview } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { VerificationChip } from "@/components/verification/VerificationChip";
 import { VerificationTrail } from "@/components/verification/VerificationTrail";
 
@@ -14,16 +15,18 @@ export default function VerificationStatusPage() {
   const user = useRequireRole("provider");
   const [provider, setProvider] = useState<Provider | null | undefined>(undefined);
   const [reviews, setReviews] = useState<VerificationReview[]>([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
     getMyProvider(user.id).then((p) => {
       setProvider(p);
-      if (p) getVerificationStatus(p.id).then((v) => setReviews(v.reviews));
-    });
+      if (p) getVerificationStatus(p.id).then((v) => setReviews(v.reviews)).catch(() => {});
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load your application."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
   if (provider === undefined) return null;
   if (provider === null) {
     return (

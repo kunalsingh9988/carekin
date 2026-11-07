@@ -30,7 +30,7 @@ function SignupForm({ providerId }: { providerId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getProviderPublic(providerId).then(setProvider);
+    getProviderPublic(providerId).then(setProvider).catch(() => setProvider(null));
     queueMicrotask(() => {
       // Referral code — if this URL carries one (someone deep-linked
       // straight here), stash it in session state so it survives to

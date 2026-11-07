@@ -53,7 +53,7 @@ export default function DocumentUploadPage() {
       setProvider(profile);
       const documents = await getDocuments(profile.id);
       setUploaded((previous) => ({ ...previous, ...Object.fromEntries(documents.map((document) => [document.type, document.filename])) }));
-    });
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load your application."));
   }, [user, router]);
 
   if (!user) return null;

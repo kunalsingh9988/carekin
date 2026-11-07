@@ -9,6 +9,7 @@ import { listAllBookings } from "@/lib/storage/repositories/bookings";
 import { listAllPayouts } from "@/lib/storage/repositories/payouts";
 import type { Booking, Dispute, Payout, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 // Operations home: the two queues that need a human (verifications,
@@ -21,21 +22,24 @@ export default function AdminDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
-    Promise.all([listPendingVerifications(), listDisputes(), listAllBookings(), listAllPayouts()]).then(
-      ([p, d, b, pay]) => {
+    Promise.all([listPendingVerifications(), listDisputes(), listAllBookings(), listAllPayouts()])
+      .then(([p, d, b, pay]) => {
         setPendingProviders(p);
         setDisputes(d);
         setBookings(b);
         setPayouts(pay);
         setLoaded(true);
-      },
-    );
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Unable to load operations data."));
   }, [user]);
 
-  if (!user || !loaded) return null;
+  if (!user) return null;
+  if (error) return <LoadError error={error} />;
+  if (!loaded) return null;
 
   const openDisputes = disputes.filter((d) => d.status === "open");
   const activeBookings = bookings.filter((b) => b.status === "confirmed" || b.status === "in_progress");

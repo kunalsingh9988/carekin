@@ -36,7 +36,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
 
   useEffect(() => {
     if (!user) return;
-    getProviderPublic(providerId).then(setProvider);
+    getProviderPublic(providerId).then(setProvider).catch(() => setProvider(null));
     queueMicrotask(() => {
       const existing = getPendingBooking();
       if (!existing || existing.providerId !== providerId) {
@@ -50,7 +50,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
       if (f) {
         setName(f.name);
         setAddress(f.address);
-        getCareRecipients(f.id).then(setRecipients);
+        getCareRecipients(f.id).then(setRecipients).catch(() => {});
       }
     });
   }, [providerId, user, router]);

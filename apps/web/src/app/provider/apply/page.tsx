@@ -22,7 +22,7 @@ export default function ProviderApplyPage() {
         if (!p) { router.replace("/provider/onboarding"); return; }
         const documents = await getDocuments(p.id);
         router.replace(documents.some((doc) => doc.type === "id_proof") && documents.some((doc) => doc.type === "address_proof") ? "/provider/verification-status" : "/provider/onboarding/documents");
-      });
+      }).catch(() => { /* resume-check is a convenience — the CTA still works */ });
     }
   }, [router]);
 

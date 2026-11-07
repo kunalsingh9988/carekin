@@ -43,8 +43,8 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
         return;
       }
       setBooking(b);
-      getProvider(b.provider_id).then(setProvider);
-    });
+      getProvider(b.provider_id).then(setProvider).catch(() => {});
+    }).catch(() => router.replace(`/family/bookings/${id}`));
   }, [id, user, router]);
 
   if (!user || !booking) return null;

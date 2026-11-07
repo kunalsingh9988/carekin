@@ -14,6 +14,7 @@ import { addNotification } from "@/lib/storage/repositories/notifications";
 import type { Booking, CareRecipient, FamilyProfile, Provider } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
 
@@ -55,11 +56,12 @@ export default function ProviderBookingsPage() {
     if (!user) return;
     getMyProvider(user.id).then((p) => {
       setProvider(p);
-      if (p) Promise.resolve().then(() => load(p.id));
-    });
+      if (p) return load(p.id);
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load your bookings."));
   }, [user]);
 
   if (!user) return null;
+  if (error && !bookings.length) return <LoadError error={error} />;
   if (!provider) {
     return (
       <main className="mx-auto flex max-w-md flex-1 items-center justify-center px-6 text-center">

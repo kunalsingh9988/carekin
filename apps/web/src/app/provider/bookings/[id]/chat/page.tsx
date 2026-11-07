@@ -23,7 +23,7 @@ export default function ProviderChatPage({ params }: { params: Promise<{ id: str
       // Only the provider this booking is with can read or write its chat.
       const provider = await getMyProvider(user.id);
       setAllowed(!!provider && b.provider_id === provider.id);
-    });
+    }).catch(() => setAllowed(false));
   }, [id, user]);
 
   if (!user) return null;

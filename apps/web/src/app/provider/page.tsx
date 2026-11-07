@@ -14,6 +14,7 @@ import { getFamilyProfileById, getCareRecipient } from "@/lib/storage/repositori
 import { getRatingSummary } from "@/lib/storage/repositories/reviews";
 import type { Booking, CareRecipient, FamilyProfile, Payout, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { ActiveCareEntry } from "@/components/care/ActiveCareEntry";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
 import { ProviderAvatar } from "@/components/ui/ProviderAvatar";
@@ -31,6 +32,7 @@ export default function ProviderDashboardPage() {
   const [recipients, setRecipients] = useState<Record<string, CareRecipient>>({});
   const [paidRequests, setPaidRequests] = useState<Record<string, boolean>>({});
   const [rating, setRating] = useState<{ avg: number; count: number } | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -65,11 +67,12 @@ export default function ProviderDashboardPage() {
           .map(async (b) => [b.id, backendEnabled || (await getPaymentForBooking(b.id))?.status === "captured"] as const),
       );
       setPaidRequests(Object.fromEntries(paidEntries));
-    });
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load your dashboard."));
   }, [user, router]);
 
-  if (!user || provider === undefined) return null;
-  if (!provider) return null; // redirect in flight
+  if (!user) return null;
+  if (error) return <LoadError error={error} />;
+  if (provider === undefined || !provider) return null;
 
   const pendingRequests = bookings.filter((b) => b.status === "requested" && paidRequests[b.id]);
   const awaitingPayment = bookings.filter((b) => b.status === "requested" && !paidRequests[b.id]);

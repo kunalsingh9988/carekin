@@ -21,10 +21,12 @@ export default function ProviderProfilePage({ params }: { params: Promise<{ id: 
   const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
+    // Backend lookups reject malformed ids (e.g. a hand-typed URL) — treat
+    // any failure as "no such provider" so the page 404s instead of hanging.
     getProviderPublic(id).then((p) => {
       setProvider(p);
-      if (p) getReviewsForProvider(p.id).then(setReviews);
-    });
+      if (p) getReviewsForProvider(p.id).then(setReviews).catch(() => setReviews([]));
+    }).catch(() => setProvider(null));
   }, [id]);
 
   if (provider === null) notFound();

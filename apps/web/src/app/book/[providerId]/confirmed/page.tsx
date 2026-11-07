@@ -27,12 +27,12 @@ function ConfirmedContent() {
   useEffect(() => {
     getBooking(bookingId).then((b) => {
       setBooking(b);
-      if (b) getProvider(b.provider_id).then(setProvider);
-    });
+      if (b) getProvider(b.provider_id).then(setProvider).catch(() => {});
+    }).catch(() => {});
     if (user) {
       getFamilyProfile(user.id).then((f) => {
         if (f) setReferralCode(getReferralCode(f.id));
-      });
+      }).catch(() => {});
     }
   }, [bookingId, user]);
 

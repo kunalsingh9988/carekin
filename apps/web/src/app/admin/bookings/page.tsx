@@ -8,6 +8,7 @@ import { getFamilyProfileById } from "@/lib/storage/repositories/families";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import type { Booking, FamilyProfile, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
@@ -17,6 +18,7 @@ export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [families, setFamilies] = useState<Record<string, FamilyProfile>>({});
   const [providers, setProviders] = useState<Record<string, Provider>>({});
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -26,10 +28,11 @@ export default function AdminBookingsPage() {
       setFamilies(Object.fromEntries(f.filter(([, v]) => v) as [string, FamilyProfile][]));
       const p = await Promise.all([...new Set(list.map((b) => b.provider_id))].map(async (id) => [id, await getProvider(id)] as const));
       setProviders(Object.fromEntries(p.filter(([, v]) => v) as [string, Provider][]));
-    });
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load bookings."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
 
   return (
     <main className="mx-auto flex max-w-4xl flex-1 flex-col gap-4 px-6 py-12">

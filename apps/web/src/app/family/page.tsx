@@ -9,6 +9,7 @@ import { listBookingsForFamily } from "@/lib/storage/repositories/bookings";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import type { Booking, FamilyProfile, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { ActiveCareEntry } from "@/components/care/ActiveCareEntry";
 import { BookingStatusBadge } from "@/components/ui/BookingStatusBadge";
 
@@ -21,6 +22,7 @@ export default function FamilyDashboardPage() {
   const [family, setFamily] = useState<FamilyProfile | null | undefined>(undefined);
   const [nextBooking, setNextBooking] = useState<Booking | null>(null);
   const [provider, setProvider] = useState<Provider | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -31,13 +33,15 @@ export default function FamilyDashboardPage() {
         const upcoming = bookings.filter((b) => UPCOMING.includes(b.status)).sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))[0];
         if (upcoming) {
           setNextBooking(upcoming);
-          getProvider(upcoming.provider_id).then(setProvider);
+          getProvider(upcoming.provider_id).then(setProvider).catch(() => {});
         }
       }
-    });
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load your dashboard."));
   }, [user]);
 
-  if (!user || family === undefined) return null;
+  if (!user) return null;
+  if (error) return <LoadError error={error} />;
+  if (family === undefined) return null;
 
   if (!family) {
     return (

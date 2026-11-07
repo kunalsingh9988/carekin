@@ -8,6 +8,7 @@ import { getBooking } from "@/lib/storage/repositories/bookings";
 import type { Booking, Dispute } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TextAreaField } from "@/components/ui/FormField";
 
@@ -17,6 +18,7 @@ export default function AdminDisputesPage() {
   const [bookings, setBookings] = useState<Record<string, Booking>>({});
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState("");
+  const [error, setError] = useState("");
 
   async function load() {
     const list = await listDisputes();
@@ -26,10 +28,11 @@ export default function AdminDisputesPage() {
   }
 
   useEffect(() => {
-    if (user) Promise.resolve().then(load);
+    if (user) Promise.resolve().then(load).catch((e) => setError(e instanceof Error ? e.message : "Unable to load disputes."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
 
   async function handleResolve(dispute: Dispute) {
     if (!resolutionNotes.trim()) return;

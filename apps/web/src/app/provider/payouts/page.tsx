@@ -7,22 +7,25 @@ import { getMyProvider } from "@/lib/storage/repositories/providers";
 import { listPayoutsForProvider } from "@/lib/storage/repositories/payouts";
 import type { Payout, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function ProviderPayoutsPage() {
   const user = useRequireRole("provider");
   const [provider, setProvider] = useState<Provider | null>(null);
   const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
     getMyProvider(user.id).then((p) => {
       setProvider(p);
-      if (p) listPayoutsForProvider(p.id).then(setPayouts);
-    });
+      if (p) return listPayoutsForProvider(p.id).then(setPayouts);
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load payouts."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
   if (!provider) {
     return (
       <main className="mx-auto flex max-w-md flex-1 items-center justify-center px-6 text-center">

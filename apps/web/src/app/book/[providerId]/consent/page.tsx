@@ -25,7 +25,7 @@ export default function ConsentPage({ params }: { params: Promise<{ providerId: 
     const value = getPendingChildRecipient();
     Promise.resolve().then(() => setPending(value));
     if (value) {
-      getFamilyProfileById(value.familyId).then((f) => setGuardianName(f?.name ?? ""));
+      getFamilyProfileById(value.familyId).then((f) => setGuardianName(f?.name ?? "")).catch(() => {});
     }
   }, []);
 

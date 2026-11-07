@@ -23,7 +23,7 @@ export default function FamilyChatPage({ params }: { params: Promise<{ id: strin
       // Only the family that owns this booking can read or write its chat.
       const family = await getFamilyProfile(user.id);
       setAllowed(!!family && b.family_id === family.id);
-    });
+    }).catch(() => setAllowed(false));
   }, [id, user]);
 
   if (!user) return null;

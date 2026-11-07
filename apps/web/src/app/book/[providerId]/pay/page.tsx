@@ -45,7 +45,7 @@ function DemoBookingPayPage({ params }: { params: Promise<{ providerId: string }
 
   useEffect(() => {
     if (!user) return;
-    getProviderPublic(providerId).then(setProvider);
+    getProviderPublic(providerId).then(setProvider).catch(() => setProvider(null));
     queueMicrotask(() => {
       const existing = getPendingBooking();
       // The pending selection must exist, have a care recipient (set at

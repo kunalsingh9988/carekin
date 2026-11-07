@@ -6,6 +6,7 @@ import { addElderRecipient, getCareRecipients, getFamilyProfile } from "@/lib/st
 import type { CareRecipient, FamilyProfile } from "@/lib/storage/types";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { TextField } from "@/components/ui/FormField";
 import { backendEnabled } from "@/lib/backend/config";
 import { remote } from "@/lib/backend/browser";
@@ -18,6 +19,7 @@ export default function FamilySettingsPage() {
   const [message, setMessage] = useState("");
   const [confirmRecipient, setConfirmRecipient] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   async function withdrawConsent(recipientId: string) {
     setBusy(true); setMessage("");
@@ -33,11 +35,12 @@ export default function FamilySettingsPage() {
     if (!user) return;
     getFamilyProfile(user.id).then((f) => {
       setFamily(f);
-      if (f) getCareRecipients(f.id).then(setRecipients);
-    });
+      if (f) getCareRecipients(f.id).then(setRecipients).catch(() => {});
+    }).catch((e) => setLoadError(e instanceof Error ? e.message : "Unable to load settings."));
   }, [user]);
 
   if (!user) return null;
+  if (loadError) return <LoadError error={loadError} />;
 
   async function handleAddElder() {
     if (!family || !newRecipientName) return;

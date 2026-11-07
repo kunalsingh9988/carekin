@@ -22,7 +22,7 @@ export default function BookingOptionsPage({ params }: { params: Promise<{ provi
   const [time, setTime] = useState("10:00");
 
   useEffect(() => {
-    getProviderPublic(providerId).then(setProvider);
+    getProviderPublic(providerId).then(setProvider).catch(() => setProvider(null));
     queueMicrotask(() => {
       const existing = getPendingBooking();
       if (existing?.providerId === providerId) {

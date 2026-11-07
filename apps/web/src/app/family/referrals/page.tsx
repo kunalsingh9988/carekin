@@ -5,23 +5,26 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
 import { getReferralCode, listReferralStats, REFERRAL_BONUS_PAISE } from "@/lib/storage/repositories/referrals";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 
 export default function ReferralsPage() {
   const user = useRequireRole("family");
   const [code, setCode] = useState<string | null>(null);
   const [stats, setStats] = useState({ referredCount: 0, completedCount: 0, earnedPaise: 0 });
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
     getFamilyProfile(user.id).then((f) => {
       if (!f) return;
       setCode(getReferralCode(f.id));
-      listReferralStats(f.id).then(setStats);
-    });
+      listReferralStats(f.id).then(setStats).catch(() => {});
+    }).catch((e) => setError(e instanceof Error ? e.message : "Unable to load referrals."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
 
   const bonus = (REFERRAL_BONUS_PAISE / 100).toFixed(0);
   const link = code ? `${typeof window !== "undefined" ? window.location.origin : ""}/search?ref=${code}` : "";

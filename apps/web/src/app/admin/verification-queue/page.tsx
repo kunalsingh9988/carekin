@@ -10,6 +10,7 @@ import { addNotification } from "@/lib/storage/repositories/notifications";
 import type { Provider, ProviderDocument } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TextAreaField } from "@/components/ui/FormField";
 import { VerificationTrail } from "@/components/verification/VerificationTrail";
@@ -23,6 +24,7 @@ export default function VerificationQueuePage() {
   const [documents, setDocuments] = useState<Record<string, ProviderDocument[]>>({});
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [error, setError] = useState("");
 
   async function load() {
     const list = await listPendingVerifications();
@@ -32,10 +34,11 @@ export default function VerificationQueuePage() {
   }
 
   useEffect(() => {
-    if (user) Promise.resolve().then(load);
+    if (user) Promise.resolve().then(load).catch((e) => setError(e instanceof Error ? e.message : "Unable to load the queue."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
 
   async function handleApprove(provider: Provider) {
     await approveProvider(provider.id, user!.id);

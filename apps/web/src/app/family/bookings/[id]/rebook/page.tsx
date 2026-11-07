@@ -42,12 +42,12 @@ export default function RebookPage({ params }: { params: Promise<{ id: string }>
           return;
         }
         setOriginal(b);
-        getProvider(b.provider_id).then(setProvider);
-        getCareRecipient(b.care_recipient_id).then(setRecipient);
+        getProvider(b.provider_id).then(setProvider).catch(() => {});
+        getCareRecipient(b.care_recipient_id).then(setRecipient).catch(() => {});
       } else {
         setOriginal(null);
       }
-    });
+    }).catch(() => router.replace("/family/bookings"));
   }, [id, user, router]);
 
   if (!user || original === undefined) return null;

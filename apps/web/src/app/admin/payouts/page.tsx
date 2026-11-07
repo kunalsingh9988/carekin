@@ -9,6 +9,7 @@ import { getProvider } from "@/lib/storage/repositories/providers";
 import type { Payout, Provider } from "@/lib/storage/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function AdminPayoutsPage() {
@@ -16,6 +17,7 @@ export default function AdminPayoutsPage() {
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [providers, setProviders] = useState<Record<string, Provider>>({});
   const [running, setRunning] = useState(false);
+  const [error, setError] = useState("");
 
   async function load() {
     const list = await listAllPayouts();
@@ -25,10 +27,11 @@ export default function AdminPayoutsPage() {
   }
 
   useEffect(() => {
-    if (user) Promise.resolve().then(load);
+    if (user) Promise.resolve().then(load).catch((e) => setError(e instanceof Error ? e.message : "Unable to load payouts."));
   }, [user]);
 
   if (!user) return null;
+  if (error) return <LoadError error={error} />;
 
   async function handleRun() {
     setRunning(true);
