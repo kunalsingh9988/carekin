@@ -9,7 +9,8 @@ import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getPendingBooking, clearPendingBooking } from "@/lib/storage/session";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
-import { createBooking, updateBookingStatus, linkBookingToSubscription } from "@/lib/storage/repositories/bookings";
+import { createBooking, createLocalBooking, updateBookingStatus, linkBookingToSubscription } from "@/lib/storage/repositories/bookings";
+import { isDevelopmentProviderId } from "@/lib/development-providers";
 import { createSubscription } from "@/lib/storage/repositories/subscriptions";
 import { simulatePayment } from "@/lib/storage/repositories/payments";
 import { addNotification } from "@/lib/storage/repositories/notifications";
@@ -77,7 +78,7 @@ function DemoBookingPayPage({ params }: { params: Promise<{ providerId: string }
 
     let currentBookingId = bookingId;
     if (!currentBookingId) {
-      const booking = await createBooking({
+      const input = {
         familyId: family.id,
         providerId,
         careRecipientId: pending!.careRecipientId!,
@@ -85,7 +86,8 @@ function DemoBookingPayPage({ params }: { params: Promise<{ providerId: string }
         scheduledAt: new Date(`${pending!.scheduledDate}T${pending!.scheduledTime || "10:00"}:00`).toISOString(),
         durationHours: pending!.durationHours,
         amountPaise: effectiveAmount,
-      });
+      };
+      const booking = isDevelopmentProviderId(providerId) ? await createLocalBooking(input) : await createBooking(input);
       currentBookingId = booking.id;
       setBookingId(booking.id);
     }

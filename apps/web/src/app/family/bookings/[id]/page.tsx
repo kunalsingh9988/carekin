@@ -6,7 +6,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, Star } from "lucide-react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
-import { getBooking, updateBookingStatus } from "@/lib/storage/repositories/bookings";
+import { getBooking, getLocalBooking, updateBookingStatus, updateLocalBookingStatus } from "@/lib/storage/repositories/bookings";
+import { isDevelopmentProviderId } from "@/lib/development-providers";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import { getCareRecipient, getFamilyProfile } from "@/lib/storage/repositories/families";
 import { getReviewForBooking } from "@/lib/storage/repositories/reviews";
@@ -34,7 +35,10 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
 
   useEffect(() => {
     if (!user) return;
-    getBooking(id).then(async (b) => {
+    // Remote ids are UUIDs; a local-only demo booking rejects on the server
+    // (or returns nothing) and is then found in the device store instead.
+    getBooking(id).catch(() => null).then(async (b) => {
+      b ??= await getLocalBooking(id).catch(() => null);
       if (!b) {
         setBooking(null);
         return;
@@ -58,8 +62,42 @@ export default function FamilyBookingDetailPage({ params }: { params: Promise<{ 
   if (booking === null) notFound();
   if (booking === undefined) return null;
 
+  // Demo-provider bookings are local-only: the fictional provider can't chat,
+  // accept or visit, so only viewing and cancelling are offered.
+  if (isDevelopmentProviderId(booking.provider_id)) {
+    return (
+      <main className="mx-auto flex max-w-md flex-1 flex-col gap-6 px-6 py-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-text-primary">{provider?.name ?? "Demo provider"}</h1>
+            <p className="text-sm text-text-secondary">{new Date(booking.scheduled_at).toLocaleString()}</p>
+          </div>
+          <BookingStatusBadge status={booking.status} />
+        </div>
+        <Card className="flex flex-col gap-2 text-sm">
+          <Row label="For" value={recipient?.name ?? "—"} />
+          <Row label="Duration" value={`${booking.duration_hours} hours`} />
+        </Card>
+        <p className="rounded-lg bg-accent-tint p-4 text-sm text-text-primary">
+          Demo booking — {provider?.name ?? "this provider"} is a fictional test profile. The request is saved on
+          this device only; no real person was notified and no visit will take place. Chat and visit tracking
+          aren&apos;t available for demo providers.
+        </p>
+        {booking.status === "requested" && (
+          <Button variant="secondary" onClick={handleCancelRequest} fullWidth>Cancel this demo request</Button>
+        )}
+        <Link href="/family/bookings" className="text-center text-sm text-text-secondary underline">Back to bookings</Link>
+      </main>
+    );
+  }
+
   async function handleCancelRequest() {
-    try { const updated = await updateBookingStatus(booking!.id, "cancelled"); setBooking(updated); }
+    try {
+      const updated = isDevelopmentProviderId(booking!.provider_id)
+        ? await updateLocalBookingStatus(booking!.id, "cancelled")
+        : await updateBookingStatus(booking!.id, "cancelled");
+      setBooking(updated);
+    }
     catch(e) { setError(e instanceof Error ? e.message : "Unable to cancel."); }
   }
 

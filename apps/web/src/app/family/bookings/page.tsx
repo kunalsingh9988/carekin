@@ -1,11 +1,13 @@
 "use client";
 
+import { backendEnabled } from "@/lib/backend/config";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarX } from "lucide-react";
 import { useRequireRole } from "@/lib/hooks/useRequireRole";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
-import { listBookingsForFamily } from "@/lib/storage/repositories/bookings";
+import { listBookingsForFamily, listLocalBookingsForFamily } from "@/lib/storage/repositories/bookings";
+import { isDevelopmentProviderId } from "@/lib/development-providers";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import type { Booking, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
@@ -27,7 +29,12 @@ export default function FamilyBookingsPage() {
     getFamilyProfile(user.id).then(async (family) => {
       if (!family) return;
       const list = await listBookingsForFamily(family.id);
-      setBookings(list);
+      // Demo-provider bookings live on this device even in backend mode —
+      // merge them in so the test visit is still visible afterwards.
+      const local = backendEnabled
+        ? (await listLocalBookingsForFamily(family.id)).filter((b) => isDevelopmentProviderId(b.provider_id))
+        : [];
+      setBookings([...local, ...list]);
       const entries = await Promise.all(
         [...new Set(list.map((b) => b.provider_id))].map(async (id) => [id, await getProvider(id)] as const),
       );
@@ -61,7 +68,10 @@ export default function FamilyBookingsPage() {
             <Link key={b.id} href={`/family/bookings/${b.id}`}>
               <Card className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-text-primary">{providers[b.provider_id]?.name ?? "Provider"}</p>
+                  <p className="font-medium text-text-primary">
+                    {providers[b.provider_id]?.name ?? "Provider"}
+                    {isDevelopmentProviderId(b.provider_id) && <span className="ml-2 rounded-full bg-surface-secondary px-2 py-0.5 text-xs font-medium text-text-secondary">Demo</span>}
+                  </p>
                   <p className="text-sm text-text-secondary">{new Date(b.scheduled_at).toLocaleString()}</p>
                 </div>
                 <BookingStatusBadge status={b.status} />

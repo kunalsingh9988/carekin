@@ -1,5 +1,6 @@
 import { backendEnabled } from "@/lib/backend/config";
 import { remote } from "@/lib/backend/browser";
+import { developmentProviderRecord, isDevelopmentProviderId } from "@/lib/development-providers";
 import { get, newId, set } from "../client";
 import type {
   DocumentType,
@@ -169,8 +170,20 @@ function toGuestSafe<T extends Provider>(p: T): Omit<T, "phone" | "latitude" | "
 
 // Backend adapters
 export const listApprovedProviders: typeof demo_listApprovedProviders = (...args) => backendEnabled ? remote("providers.listApprovedProviders", args) : demo_listApprovedProviders(...args);
-export const getProviderPublic: typeof demo_getProviderPublic = (...args) => backendEnabled ? remote("providers.getProviderPublic", args) : demo_getProviderPublic(...args);
-export const getProvider: typeof demo_getProvider = (...args) => backendEnabled ? remote("providers.getProvider", args) : demo_getProvider(...args);
+// Development fixtures resolve before any store lookup — demo ids can never
+// exist in the database (they are not UUIDs), so the fixture projection is
+// unambiguous in both modes.
+export const getProviderPublic: typeof demo_getProviderPublic = async (id) => {
+  if (isDevelopmentProviderId(id)) {
+    const fixture = developmentProviderRecord(id);
+    return fixture ? toGuestSafe(fixture) : null;
+  }
+  return backendEnabled ? remote("providers.getProviderPublic", [id]) : demo_getProviderPublic(id);
+};
+export const getProvider: typeof demo_getProvider = async (id) => {
+  if (isDevelopmentProviderId(id)) return developmentProviderRecord(id);
+  return backendEnabled ? remote("providers.getProvider", [id]) : demo_getProvider(id);
+};
 export const getMyProvider: typeof demo_getMyProvider = (...args) => backendEnabled ? remote("providers.getMyProvider", args) : demo_getMyProvider(...args);
 export const createProviderProfile: typeof demo_createProviderProfile = (...args) => backendEnabled ? remote("providers.createProviderProfile", args) : demo_createProviderProfile(...args);
 export const submitDocuments: typeof demo_submitDocuments = (...args) => backendEnabled ? remote("providers.submitDocuments", args) : demo_submitDocuments(...args);

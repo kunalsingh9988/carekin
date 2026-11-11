@@ -3,7 +3,8 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { isDevelopmentProviderId } from "@/lib/development-providers";
 import { ArrowLeft, ArrowRight, Star } from "lucide-react";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
 import { getReviewsForProvider } from "@/lib/storage/repositories/reviews";
@@ -17,6 +18,9 @@ import { VerificationTrail } from "@/components/verification/VerificationTrail";
 // page a word-of-mouth link should land on, not a login screen.
 export default function ProviderProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  // Fictional development profiles keep their own labeled page — they must
+  // never render inside the real verified-provider shell.
+  if (isDevelopmentProviderId(id)) redirect(`/demo-providers/${id}`);
   const [provider, setProvider] = useState<GuestSafeProvider | null | undefined>(undefined);
   const [reviews, setReviews] = useState<Review[]>([]);
 

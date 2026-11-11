@@ -94,3 +94,11 @@ export const listAllBookings: typeof demo_listAllBookings = (...args) => backend
 export const getBooking: typeof demo_getBooking = (...args) => backendEnabled ? remote("bookings.getBooking", args) : demo_getBooking(...args);
 export const updateBookingStatus: typeof demo_updateBookingStatus = (...args) => backendEnabled ? remote("bookings.updateBookingStatus", args) : demo_updateBookingStatus(...args);
 export const linkBookingToSubscription: typeof demo_linkBookingToSubscription = (...args) => backendEnabled ? remote("bookings.linkBookingToSubscription", args) : demo_linkBookingToSubscription(...args);
+
+// Local-only ops for demo-provider bookings. A fictional provider has no
+// backend row, so their bookings always live in the device store even in
+// backend mode — the only way a demo profile can be "booked".
+export const createLocalBooking = demo_createBooking;
+export const getLocalBooking = demo_getBooking;
+export const listLocalBookingsForFamily = demo_listBookingsForFamily;
+export const updateLocalBookingStatus = demo_updateBookingStatus;

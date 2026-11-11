@@ -19,7 +19,8 @@ export default async function DevelopmentProviderPage({params}:{params:Promise<{
         <p className="text-text-primary">{profile.bio}</p>
         <div className="grid gap-2"><h2 className="text-lg font-semibold">Sample care focus</h2><p className="text-text-secondary">{profile.focus}</p></div>
         <p className="text-sm leading-sm text-text-secondary">This fictional {profile.type==="caregiver"?"caregiver":"babysitter"} is shown in every location for development testing only. No background checks, qualifications, ratings, reviews or local availability are claimed. The illustration is not identity evidence.</p>
-        <button disabled className="min-h-tap rounded-md border border-border bg-surface-secondary px-4 text-sm font-semibold text-text-secondary">Bookings disabled for demo profiles</button>
+        <Link href={`/book/${profile.id}`} className="flex min-h-tap items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-hover">Book a demo visit →</Link>
+        <p className="text-xs text-text-secondary">Demo bookings walk through the real booking flow for testing — no real provider is notified and no visit will take place.</p>
       </div>
     </div>
   </main>;

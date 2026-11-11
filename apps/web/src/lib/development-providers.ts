@@ -1,4 +1,4 @@
-import type { ProviderType } from "./storage/types";
+import type { Provider, ProviderType } from "./storage/types";
 
 // Explicit development fixtures, never inserted into approved provider records.
 // Disable this gallery before a public service launch.
@@ -33,6 +33,22 @@ export const DEVELOPMENT_PROVIDERS: readonly DevelopmentProvider[] = [
 ];
 export function isDevelopmentProviderId(id: string): boolean { return id.startsWith("demo-carekin-"); }
 export function getDevelopmentProvider(id: string) { return SHOW_DEVELOPMENT_PROVIDERS ? DEVELOPMENT_PROVIDERS.find(profile=>profile.id===id) : undefined; }
+
+// Provider-shaped projection of a fictional fixture so booking screens can
+// render it. Private fields (phone/coordinates) are empty — a demo provider
+// has none. Bookings against it stay in the local store, never the backend:
+// no real person can receive or accept the request.
+export function developmentProviderRecord(id: string): Provider | null {
+  const profile = getDevelopmentProvider(id);
+  if (!profile) return null;
+  return {
+    id: profile.id, user_id: "", type: profile.type, name: profile.name,
+    phone: "", bio: profile.bio, service_radius_km: 0,
+    latitude: 0, longitude: 0, verification_status: "approved",
+    photo_seed: profile.name,
+    created_at: "2026-01-01T00:00:00.000Z", updated_at: "2026-01-01T00:00:00.000Z",
+  };
+}
 export function listDevelopmentProviders(type: ProviderType, query="") {
   if (!SHOW_DEVELOPMENT_PROVIDERS) return [];
   const search=query.trim().toLowerCase();
