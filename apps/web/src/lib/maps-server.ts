@@ -45,6 +45,39 @@ export function nominatimFetch(path: "/search" | "/reverse", params: Record<stri
   return fetch(url, { signal: AbortSignal.timeout(9000), cache: "no-store", headers: { "User-Agent": MAP_UA } });
 }
 
+// Photon (Komoot's OSM geocoder) is the primary fallback for search and
+// reverse lookups — purpose-built for as-you-type address autocomplete and
+// far more tolerant of shared cloud egress IPs than public Nominatim, which
+// rate-limits Vercel ranges aggressively.
+export function photonFetch(path: "/api" | "/reverse", params: Record<string, string>) {
+  const url = new URL(path, "https://photon.komoot.io");
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+  url.searchParams.set("lang", "en");
+  return fetch(url, { signal: AbortSignal.timeout(9000), cache: "no-store", headers: { "User-Agent": MAP_UA } });
+}
+
+// Photon returns GeoJSON features — normalized into the same envelope.
+export function normalizePhoton(payload: unknown): { results: unknown[] } {
+  const features = payload && typeof payload === "object" && Array.isArray((payload as Record<string, unknown>).features)
+    ? (payload as { features: unknown[] }).features : [];
+  return {
+    results: features.slice(0, 5).flatMap((feature) => {
+      if (!feature || typeof feature !== "object") return [];
+      const f = feature as { properties?: Record<string, unknown>; geometry?: { coordinates?: unknown } };
+      const p = f.properties ?? {};
+      const c = f.geometry?.coordinates;
+      if (!Array.isArray(c) || c.length < 2 || typeof c[0] !== "number" || typeof c[1] !== "number") return [];
+      const pick = (key: string) => typeof p[key] === "string" ? p[key] as string : "";
+      const street = [pick("housenumber"), pick("street")].filter(Boolean).join(" ");
+      const line1 = pick("name") || street || pick("suburb") || pick("neighbourhood") || pick("city") || pick("district");
+      const line2 = [pick("name") && street, pick("suburb") || pick("neighbourhood"), pick("city") || pick("district"), pick("state"), pick("postcode"), pick("country")].filter(Boolean).join(", ");
+      const formatted = [line1, line2].filter(Boolean).join(", ");
+      if (!formatted) return [];
+      return [{ place_id: String(p.osm_id ?? ""), formatted, address_line1: line1, address_line2: line2, lat: c[1], lon: c[0] }];
+    }),
+  };
+}
+
 // Nominatim returns a bare array for /search and a single object for /reverse —
 // normalized here into the Geoapify-shaped { results: [...] } envelope the
 // client parser already understands.
@@ -68,4 +101,19 @@ export function normalizeNominatim(payload: unknown): { results: unknown[] } {
       }];
     }),
   };
+}
+
+// Short-lived result cache: identical searches (keystroke bursts, reopened
+// pickers, retried pin drops) never reach an upstream provider at all.
+const addressCache = new Map<string, { at: number; body: unknown }>();
+const CACHE_TTL_MS = 10 * 60 * 1000;
+export function cachedAddress(key: string): unknown | null {
+  const entry = addressCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.at > CACHE_TTL_MS) { addressCache.delete(key); return null; }
+  return entry.body;
+}
+export function cacheAddress(key: string, body: unknown): void {
+  if (addressCache.size > 500) addressCache.clear();
+  addressCache.set(key, { at: Date.now(), body });
 }
