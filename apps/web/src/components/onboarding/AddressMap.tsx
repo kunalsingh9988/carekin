@@ -8,9 +8,18 @@ import type { LocationCoordinates } from "@/lib/locations";
 export type MapView = LocationCoordinates & { zoom: number; revision: number };
 export function AddressMap({ view, onMoving, onMoved }: { view: MapView; onMoving: () => void; onMoved: (at: LocationCoordinates, zoom: number) => void }) {
   const container = useRef<HTMLDivElement>(null), map = useRef<LeafletMap | null>(null);
-  const callbacks = useRef({ onMoving, onMoved }), latestView = useRef(view), programmatic = useRef(false);
+  const callbacks = useRef({ onMoving, onMoved }), latestView = useRef(view), programmatic = useRef(false), programmaticTimer = useRef(0);
   const [failed, setFailed] = useState(false), [ready, setReady] = useState(false);
   useEffect(() => { callbacks.current = { onMoving, onMoved }; latestView.current = view; });
+  // Leaflet debounces moveend (and invalidateSize's move) asynchronously, so a
+  // flag cleared synchronously never covers the echo. Hold it through the
+  // debounce window after every programmatic change, or each echo reports a
+  // slightly different centre and retriggers the lookup that caused it.
+  const runProgrammatic = (run: () => void) => {
+    programmatic.current = true; run();
+    window.clearTimeout(programmaticTimer.current);
+    programmaticTimer.current = window.setTimeout(() => { programmatic.current = false; }, 250);
+  };
   useEffect(() => {
     let disposed = false;
     void import("leaflet").then(L => {
@@ -22,9 +31,18 @@ export function AddressMap({ view, onMoving, onMoved }: { view: MapView; onMovin
       tiles.on("tileerror", () => { if (!disposed) setFailed(true); });
       tiles.on("tileload", () => { if (!disposed) { setReady(true); setFailed(false); } });
       tiles.addTo(instance);
-      instance.on("movestart", () => { if (!programmatic.current) callbacks.current.onMoving(); });
-      instance.on("moveend", () => { if (!programmatic.current) { const at = instance.getCenter().wrap(); callbacks.current.onMoved({ latitude: at.lat, longitude: at.lng }, instance.getZoom()); } });
-      const observer = new ResizeObserver(() => instance.invalidateSize({ pan: false }));
+      let userMoved = false;
+      instance.on("movestart", () => { if (!programmatic.current) { userMoved = true; callbacks.current.onMoving(); } });
+      instance.on("moveend", () => {
+        // Only a moveend paired with a user-initiated movestart is real —
+        // programmatic setView/invalidateSize echoes arrive debounced and
+        // must never start another lookup, or the loop restarts forever.
+        if (!userMoved) return;
+        userMoved = false;
+        const at = instance.getCenter().wrap();
+        callbacks.current.onMoved({ latitude: at.lat, longitude: at.lng }, instance.getZoom());
+      });
+      const observer = new ResizeObserver(() => runProgrammatic(() => instance.invalidateSize({ pan: false })));
       observer.observe(container.current);
       instance.on("unload", () => observer.disconnect());
     }).catch(() => { if (!disposed) setFailed(true); });
@@ -32,9 +50,7 @@ export function AddressMap({ view, onMoving, onMoved }: { view: MapView; onMovin
   }, []);
   useEffect(() => {
     if (!map.current) return;
-    programmatic.current = true;
-    map.current.setView([view.latitude, view.longitude], view.zoom, { animate: false });
-    programmatic.current = false;
+    runProgrammatic(() => map.current!.setView([view.latitude, view.longitude], view.zoom, { animate: false }));
   }, [view]);
   return <div className="relative isolate min-h-72 overflow-hidden rounded-lg bg-surface-secondary sm:min-h-96">
     <div ref={container} tabIndex={0} role="region" aria-label="Address map. Drag the map or use arrow keys to position the pin." className="absolute inset-0 z-0" />

@@ -32,14 +32,17 @@ function AddressDialog({ initial, autoLocate, onClose, onConfirm }: { initial: L
   const [query, setQuery] = useState(""), [suggestions, setSuggestions] = useState<AddressPlace[]>([]), [searchBusy, setSearchBusy] = useState(false), [searchError, setSearchError] = useState("");
   const [unit, setUnit] = useState(""), [landmark, setLandmark] = useState("");
   const reverseController = useRef<AbortController | null>(null), generation = useRef(0);
-  const cancelLookup = useCallback(() => { generation.current++; reverseController.current?.abort(); }, []);
+  const lastRequested = useRef<LocationCoordinates | null>(null), lastResolved = useRef<{ at: LocationCoordinates; place: AddressPlace } | null>(null), inFlight = useRef(false);
+  const near = (a: LocationCoordinates, b: LocationCoordinates) => Math.abs(a.latitude - b.latitude) < 0.0003 && Math.abs(a.longitude - b.longitude) < 0.0003;
+  const cancelLookup = useCallback(() => { generation.current++; reverseController.current?.abort(); inFlight.current = false; }, []);
   const resolvePoint = useCallback(async (at: LocationCoordinates) => {
+    lastRequested.current = at;
     cancelLookup(); const request = generation.current;
     const controller = new AbortController(); reverseController.current = controller;
-    setResolving(true); setPlace(null); setLookupError("");
-    try { const found = await reverseAddress(at, controller.signal); if (request === generation.current) setPlace(found); }
+    inFlight.current = true; setResolving(true); setPlace(null); setLookupError("");
+    try { const found = await reverseAddress(at, controller.signal); if (request === generation.current) { lastResolved.current = { at, place: found }; setPlace(found); } }
     catch (error) { if (request === generation.current && !controller.signal.aborted) setLookupError(error instanceof Error ? error.message : "We couldn’t find this address. Try searching instead."); }
-    finally { if (request === generation.current) setResolving(false); }
+    finally { if (request === generation.current) { inFlight.current = false; setResolving(false); } }
   }, [cancelLookup]);
   const detect = useCallback(async () => {
     cancelLookup(); setResolving(false); setPlace(null); setLookupError(""); setQuery(""); setSuggestions([]); setSearchBusy(false);
@@ -71,10 +74,27 @@ function AddressDialog({ initial, autoLocate, onClose, onConfirm }: { initial: L
   }
   function choose(found: AddressPlace) {
     clearLocationRequest(); cancelLookup(); setResolving(false); setAccuracy(null); setPlace(found); setLookupError(""); setQuery(""); setSuggestions([]); setSearchBusy(false);
+    lastRequested.current = found; lastResolved.current = { at: found, place: found };
     setView(current => ({ latitude: found.latitude, longitude: found.longitude, zoom: 17, revision: current.revision + 1 }));
   }
   function mapMoving() { clearLocationRequest(); cancelLookup(); setResolving(true); setPlace(null); setLookupError(""); setAccuracy(null); }
-  function mapMoved(at: LocationCoordinates, zoom: number) { setQuery(""); setSearchBusy(false); setSuggestions([]); setView(current => ({ ...at, zoom, revision: current.revision + 1 })); void resolvePoint(at); }
+  function mapMoved(at: LocationCoordinates, zoom: number) {
+    setQuery(""); setSearchBusy(false); setSuggestions([]);
+    setView(current => ({ ...at, zoom, revision: current.revision + 1 }));
+    // Leaflet fires debounced moveends after programmatic setView/resize —
+    // they land within ~30m of the point we just looked up and escape the
+    // map's programmatic flag. Treat them as the map settling, not a user
+    // move, or each lookup restarts the cycle and requests loop forever.
+    if (lastRequested.current && near(at, lastRequested.current)) {
+      if (!inFlight.current) {
+        setResolving(false); setLookupError("");
+        const resolved = lastResolved.current;
+        if (resolved && near(at, resolved.at)) setPlace(resolved.place);
+      }
+      return;
+    }
+    void resolvePoint(at);
+  }
   return <dialog ref={dialog} aria-labelledby="address-picker-title" onCancel={event => { event.preventDefault(); onClose(); }} onKeyDown={event => { if (event.key === "Enter" && event.target instanceof HTMLInputElement) event.preventDefault(); }} className="m-auto max-h-[92dvh] w-[calc(100%_-_1rem)] max-w-4xl overflow-y-auto overscroll-contain rounded-lg bg-surface p-0 text-text-primary backdrop:bg-black/50 sm:w-[calc(100%_-_3rem)]">
     <div className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-border bg-surface px-4 py-3 sm:px-6"><h2 id="address-picker-title" className="text-xl font-semibold">Choose your care address</h2><button type="button" aria-label="Close address picker without changes" onClick={onClose} className="flex min-h-tap min-w-tap items-center justify-center"><X size={20} /></button></div>
     <div className="grid gap-5 p-4 sm:p-6">
