@@ -4,7 +4,7 @@ import { BackendSignIn } from "@/components/auth/BackendSignIn";
 
 import { use, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, notFound } from "next/navigation";
-import { loginAsDemo, loginAsRole } from "@/lib/auth";
+import { loginAsDemo, loginAsRole, useCurrentUser } from "@/lib/auth";
 import { getPendingBooking, setPendingReferral } from "@/lib/storage/session";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
 import type { PendingBooking } from "@/lib/storage/types";
@@ -148,9 +148,25 @@ function SignupForm({ providerId }: { providerId: string }) {
   );
 }
 
+// Backend-mode signup step: an already signed-in user should never see the
+// sign-in wall — advance straight to family details. Wait one effect so the
+// hydrated session is visible before deciding (useCurrentUser reads null on
+// the first SSR-matched render).
+function BackendSignupStep({ providerId }: { providerId: string }) {
+  const router = useRouter();
+  const user = useCurrentUser();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    if (mounted && user) router.replace(`/book/${providerId}/profile`);
+  }, [mounted, user, providerId, router]);
+  if (!mounted || user) return null;
+  return <main className="mx-auto w-full max-w-lg px-6 py-12"><BackendSignIn next={`/book/${providerId}/profile`} /></main>;
+}
+
 export default function BookingSignupPage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
-  if (backendEnabled) return <main className="mx-auto w-full max-w-lg px-6 py-12"><BackendSignIn next={`/book/${providerId}/profile`} /></main>;
+  if (backendEnabled) return <BackendSignupStep providerId={providerId} />;
   return (
     <Suspense>
       <SignupForm providerId={providerId} />
