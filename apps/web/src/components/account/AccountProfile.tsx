@@ -21,7 +21,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { VerificationChip } from "@/components/verification/VerificationChip";
 
-const ROLE_NAMES = { family: "Family account", provider: "Care provider account", admin: "Administrator account" };
+const ROLE_NAMES = { family: "Care seeker", provider: "Care provider", admin: "Administrator" };
 function message(error: unknown) { return error instanceof Error ? error.message : "Something went wrong. Please try again."; }
 function date(value?: string) { return value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "Not available"; }
 
@@ -75,6 +75,7 @@ function ProfileContent({ user }: { user: CurrentUser }) {
         <AccountAvatar name={displayName} email={user.email} src={user.avatar_url} large />
         <h2 className="mt-4 break-words text-2xl font-semibold">{displayName}</h2>
         <p className="mt-2 text-sm text-accent-text">{ROLE_NAMES[user.role]}</p>
+        <div className="mt-4"><ModeToggle user={user} /></div>
         <p className="mt-4 text-sm text-text-secondary">Member since {date(user.created_at)}</p>
         <nav aria-label="Profile sections" className="mt-6 grid border-t border-border pt-4">
           <a href="#personal" className="min-h-tap py-3 text-sm font-medium">Personal details &amp; photo</a>
@@ -110,10 +111,10 @@ function ProfileContent({ user }: { user: CurrentUser }) {
 }
 
 const MODES = [
-  { role: "family" as const, label: "Book care", hint: "Find and arrange care for your family" },
-  { role: "provider" as const, label: "Provide care", hint: "Offer elder care or babysitting to families" },
+  { role: "family" as const, label: "Care seeker", hint: "Find and arrange care for your family" },
+  { role: "provider" as const, label: "Care provider", hint: "Offer elder care or babysitting to families" },
 ];
-function ModeSwitch({ user }: { user: CurrentUser }) {
+function useModeSwitch(user: CurrentUser) {
   const router = useRouter();
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   async function choose(role: "family" | "provider") {
@@ -122,6 +123,26 @@ function ModeSwitch({ user }: { user: CurrentUser }) {
     try { await switchRole(role); router.push(`/${role}`); router.refresh(); }
     catch (e) { setError(message(e)); setBusy(false); }
   }
+  return { busy, error, choose };
+}
+
+// Compact toggle in the sidebar — the at-a-glance answer to "what am I right
+// now" and the quickest way to flip between them.
+function ModeToggle({ user }: { user: CurrentUser }) {
+  const { busy, error, choose } = useModeSwitch(user);
+  if (user.role === "admin") return null;
+  return <div>
+    <div role="radiogroup" aria-label="Switch between care seeker and care provider" className="grid grid-cols-2 rounded-full border border-border bg-surface p-1">
+      {MODES.map((m) => <button key={m.role} type="button" role="radio" aria-checked={user.role === m.role} disabled={busy} onClick={() => void choose(m.role)} className={`min-h-tap whitespace-nowrap rounded-full px-2 text-sm font-semibold transition-colors ${user.role === m.role ? "bg-accent text-white" : "text-text-secondary hover:text-text-primary"}`}>
+        {m.label}{busy && user.role !== m.role ? "…" : ""}
+      </button>)}
+    </div>
+    {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
+  </div>;
+}
+
+function ModeSwitch({ user }: { user: CurrentUser }) {
+  const { busy, error, choose } = useModeSwitch(user);
   if (user.role === "admin") return <p className="mt-2 text-sm text-text-secondary">Administrator access is assigned privately and can&apos;t be changed from this page.</p>;
   return <div className="mt-4">
     <div role="radiogroup" aria-label="How you use CareKin" className="grid gap-2 sm:grid-cols-2">
@@ -130,7 +151,7 @@ function ModeSwitch({ user }: { user: CurrentUser }) {
         <span className="mt-1 block text-sm text-text-secondary">{m.hint}</span>
       </button>)}
     </div>
-    <p className="mt-3 text-sm text-text-secondary">Switching is instant and keeps both sides safe — your provider application and your family details stay saved, and you can switch back anytime.</p>
+    <p className="mt-3 text-sm text-text-secondary">You can be both — switching is instant and keeps each side safe. Your provider application and your family details stay saved, and you can switch back anytime.</p>
     {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
   </div>;
 }
