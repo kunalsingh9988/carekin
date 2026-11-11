@@ -1,2 +1,2 @@
 import { mapsEnabled } from "@/lib/maps-server";
-export function GET() { return Response.json({ enabled: mapsEnabled() }, { headers: { "Cache-Control": "no-store" } }); }
+export function GET() { return Response.json({ enabled: true, provider: mapsEnabled() ? "geoapify" : "openstreetmap-fallback" }, { headers: { "Cache-Control": "no-store" } }); }

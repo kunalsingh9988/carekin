@@ -98,7 +98,7 @@ function AddressDialog({ initial, autoLocate, onClose, onConfirm }: { initial: L
           <Button type="button" variant="ghost" onClick={onClose}>Cancel—keep previous location</Button>
         </div>
       </div>
-      <p className="text-sm text-text-secondary">Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" className="text-accent-text underline">Geoapify</a> · © <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer" className="text-accent-text underline">OpenMapTiles</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="text-accent-text underline">OpenStreetMap contributors</a>. Confirming updates this form only; save the form to update your profile.</p>
+      <p className="text-sm text-text-secondary">Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" className="text-accent-text underline">Geoapify</a> with <a href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer" className="text-accent-text underline">OpenStreetMap</a> fallback · © OpenMapTiles · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="text-accent-text underline">OpenStreetMap contributors</a> · search by Nominatim. Confirming updates this form only; save the form to update your profile.</p>
     </div>
   </dialog>;
 }

@@ -18,7 +18,7 @@ export function AddressMap({ view, onMoving, onMoved }: { view: MapView; onMovin
       const initial = latestView.current;
       const instance = L.map(container.current, { scrollWheelZoom: false, zoomControl: true, keyboard: true, dragging: true }).setView([initial.latitude, initial.longitude], initial.zoom);
       map.current = instance;
-      const tiles = L.tileLayer(`/api/maps/tiles/{z}/{x}/{y}?retina=${L.Browser.retina ? "1" : "0"}`, { maxZoom: 20, keepBuffer: 1, updateWhenIdle: true, updateWhenZooming: false, attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a> | © <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors' });
+      const tiles = L.tileLayer(`/api/maps/tiles/{z}/{x}/{y}?retina=${L.Browser.retina ? "1" : "0"}`, { maxZoom: 20, keepBuffer: 1, updateWhenIdle: true, updateWhenZooming: false, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors | Tiles: Geoapify / <a href="https://www.openstreetmap.org/" target="_blank" rel="noreferrer">OpenStreetMap</a>' });
       tiles.on("tileerror", () => { if (!disposed) setFailed(true); });
       tiles.on("tileload", () => { if (!disposed) { setReady(true); setFailed(false); } });
       tiles.addTo(instance);
