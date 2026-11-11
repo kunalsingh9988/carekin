@@ -118,7 +118,10 @@ export function loginAsDemo(role: UserRole): CurrentUser {
 // back. Admin can never be reached this way, in either mode.
 export async function switchRole(role: "family" | "provider"): Promise<CurrentUser> {
   if (!backendEnabled) return loginAsDemo(role);
-  const account = await remote<CurrentUser | null>("auth.switchRole", [role]);
+  const account = await remote<CurrentUser | null>("auth.switchRole", [role]).catch((e) => {
+    if (e instanceof Error && e.message.includes("not enabled")) throw new Error("Role switching isn't enabled on this server yet — the backend update hasn't been applied.");
+    throw e;
+  });
   if (!account) throw new Error("Role switching is only available to family and provider accounts.");
   await refreshCurrentUser();
   return account;
