@@ -156,7 +156,7 @@ function BackendSignupStep({ providerId }: { providerId: string }) {
   const router = useRouter();
   const user = useCurrentUser();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
   useEffect(() => {
     if (mounted && user) router.replace(`/book/${providerId}/profile`);
   }, [mounted, user, providerId, router]);

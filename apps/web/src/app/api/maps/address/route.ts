@@ -4,7 +4,6 @@ import { parseCoordinates } from "@/lib/locations";
 export async function POST(request: Request) {
   const headers = { "Cache-Control": "no-store" };
   if (!sameMapOrigin(request)) return Response.json({ error: "Use address search from the CareKin website." }, { status: 403, headers });
-  if (!allowMapRequest(request, "address")) return Response.json({ error: "Too many address requests. Wait a minute and try again." }, { status: 429, headers });
   try {
     const body = await request.text();
     if (body.length > 3000) return Response.json({ error: "Address request is too long." }, { status: 400, headers });
@@ -25,8 +24,11 @@ export async function POST(request: Request) {
       nominatim = ["/reverse", { lat, lon, zoom: "18", addressdetails: "1" }];
       cacheKey = `reverse:${Number(lat).toFixed(4)},${Number(lon).toFixed(4)}`;
     } else return Response.json({ error: "Enter a valid address or location." }, { status: 400, headers });
+    // Cached lookups are free — repeat searches and pin drops must never
+    // consume the per-IP quota that protects upstream providers.
     const cached = cachedAddress(cacheKey);
     if (cached) return Response.json(cached, { headers });
+    if (!allowMapRequest(request, "address")) return Response.json({ error: "Too many address requests. Wait a minute and try again." }, { status: 429, headers });
     // Geoapify when its key works → Photon (autocomplete-tolerant geocoder)
     // → Nominatim. A broken credential or a throttled shared egress IP should
     // degrade the provider, never the feature.
