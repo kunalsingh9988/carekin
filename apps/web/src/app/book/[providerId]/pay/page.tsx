@@ -5,7 +5,7 @@ import { BackendBookingRequest } from "@/components/booking/BackendBookingReques
 import { use, useEffect, useState } from "react";
 import { useRouter, notFound } from "next/navigation";
 import { CircleAlert, Loader2 } from "lucide-react";
-import { useRequireRole } from "@/lib/hooks/useRequireRole";
+import { useRequireBookingRole } from "@/lib/hooks/useRequireBookingRole";
 import { getPendingBooking, clearPendingBooking } from "@/lib/storage/session";
 import { getProviderPublic, type GuestSafeProvider } from "@/lib/storage/repositories/providers";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
@@ -18,6 +18,7 @@ import { weeklyPlanPricePaise, WEEKLY_DISCOUNT_PCT, VISITS_PER_WEEK } from "@/li
 import type { PendingBooking } from "@/lib/storage/types";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 
 type PaymentState = "idle" | "processing" | "failed";
 
@@ -32,7 +33,7 @@ export default function BookingPayPage({ params }: { params: Promise<{ providerI
 function DemoBookingPayPage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
   const router = useRouter();
-  const user = useRequireRole("family");
+  const { user, blocked } = useRequireBookingRole();
 
   const [provider, setProvider] = useState<GuestSafeProvider | null | undefined>(undefined);
   const [pending, setPending] = useState<PendingBooking | null>(null);
@@ -61,6 +62,7 @@ function DemoBookingPayPage({ params }: { params: Promise<{ providerId: string }
   }, [providerId, user, router]);
 
   if (provider === null) notFound();
+  if (blocked) return <LoadError error={blocked} />;
   if (!user || provider === undefined || !pending) return null;
 
   const visitsPerWeek = pending.visitsPerWeek ?? VISITS_PER_WEEK;

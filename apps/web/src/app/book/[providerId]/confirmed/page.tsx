@@ -4,13 +4,14 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CircleCheck } from "lucide-react";
-import { useRequireRole } from "@/lib/hooks/useRequireRole";
+import { useRequireBookingRole } from "@/lib/hooks/useRequireBookingRole";
 import { getBooking } from "@/lib/storage/repositories/bookings";
 import { getProvider } from "@/lib/storage/repositories/providers";
 import { getReferralCode, REFERRAL_BONUS_PAISE } from "@/lib/storage/repositories/referrals";
 import { getFamilyProfile } from "@/lib/storage/repositories/families";
 import type { Booking, Provider } from "@/lib/storage/types";
 import { Card } from "@/components/ui/Card";
+import { LoadError } from "@/components/ui/LoadError";
 
 // Section 4, Step 7: "the single highest-propensity moment for a second
 // 'yes' in the whole funnel." Cross-sell card is single, not a full list —
@@ -18,7 +19,7 @@ import { Card } from "@/components/ui/Card";
 function ConfirmedContent() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("bookingId") ?? "";
-  const user = useRequireRole("family");
+  const { user, blocked } = useRequireBookingRole();
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [provider, setProvider] = useState<Provider | null>(null);
@@ -36,6 +37,7 @@ function ConfirmedContent() {
     }
   }, [bookingId, user]);
 
+  if (blocked) return <LoadError error={blocked} />;
   if (!booking || !provider || !user) return null;
 
   const crossSell =

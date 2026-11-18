@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter, notFound } from "next/navigation";
-import { useRequireRole } from "@/lib/hooks/useRequireRole";
+import { useRequireBookingRole } from "@/lib/hooks/useRequireBookingRole";
 import { LocationPicker } from "@/components/onboarding/LocationPicker";
 import type { LocationCoordinates } from "@/lib/locations";
 import { getFamilyProfile, saveFamilyProfile, getCareRecipients, addElderRecipient } from "@/lib/storage/repositories/families";
@@ -12,6 +12,7 @@ import { findFamilyIdByReferralCode, recordReferral } from "@/lib/storage/reposi
 import { get } from "@/lib/storage/client";
 import type { CareRecipient, CareRecipientType, FamilyProfile, PendingBooking } from "@/lib/storage/types";
 import { OnboardingFrame } from "@/components/onboarding/OnboardingFrame";
+import { LoadError } from "@/components/ui/LoadError";
 import { BookingSummaryCard } from "@/components/booking/BookingSummaryCard";
 import { Button } from "@/components/ui/Button";
 import { TextField, TextAreaField } from "@/components/ui/FormField";
@@ -19,7 +20,7 @@ import { TextField, TextAreaField } from "@/components/ui/FormField";
 export default function BookingProfilePage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
   const router = useRouter();
-  const user = useRequireRole("family");
+  const { user, blocked } = useRequireBookingRole();
 
   const [provider, setProvider] = useState<GuestSafeProvider | null | undefined>(undefined);
   const [pending, setPending] = useState<PendingBooking | null>(null);
@@ -56,6 +57,7 @@ export default function BookingProfilePage({ params }: { params: Promise<{ provi
   }, [providerId, user, router]);
 
   if (provider === null) notFound();
+  if (blocked) return <LoadError error={blocked} />;
   if (!user || provider === undefined) return null;
 
   // Returning-family shortcut (Section 6.8) — an existing care recipient

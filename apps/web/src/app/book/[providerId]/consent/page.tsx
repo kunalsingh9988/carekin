@@ -2,7 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useRequireRole } from "@/lib/hooks/useRequireRole";
+import { useRequireBookingRole } from "@/lib/hooks/useRequireBookingRole";
+import { LoadError } from "@/components/ui/LoadError";
 import { addChildRecipientWithConsent, getFamilyProfileById } from "@/lib/storage/repositories/families";
 import { setPendingBooking, getPendingChildRecipient, clearPendingChildRecipient, type PendingChildRecipient } from "@/lib/storage/session";
 import { Card } from "@/components/ui/Card";
@@ -14,7 +15,7 @@ import { Card } from "@/components/ui/Card";
 export default function ConsentPage({ params }: { params: Promise<{ providerId: string }> }) {
   const { providerId } = use(params);
   const router = useRouter();
-  const user = useRequireRole("family");
+  const { user, blocked } = useRequireBookingRole();
 
   const [pending, setPending] = useState<PendingChildRecipient | null | undefined>(undefined);
   const [guardianName, setGuardianName] = useState("");
@@ -36,6 +37,7 @@ export default function ConsentPage({ params }: { params: Promise<{ providerId: 
     if (pending === null) router.replace(`/book/${providerId}/profile`);
   }, [pending, providerId, router]);
 
+  if (blocked) return <LoadError error={blocked} />;
   if (!user || !pending) return null;
   const childName = pending.name || "this child";
 
